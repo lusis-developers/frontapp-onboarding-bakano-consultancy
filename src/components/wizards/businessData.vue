@@ -99,10 +99,96 @@ const handleDialogClose = () => {
     emit('update:open', false);
   }
 };
-const stepFields: Record<number, (keyof FormValues)[]> = { /* ... (como antes) ... */ };
-const validateStepFiles = (step: number): { valid: boolean, message?: string } => { /* ... (como antes) ... */ return { valid: true }; }; // Implementa esta lógica
+const stepFields: Record<number, (keyof FormValues)[]> = {
+  1: ['instagram', 'tiktok', 'empleados'],
+  2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'],
+  3: ['objetivoIdeal'], // El objetivo ideal es el único campo de texto/select en el paso 3 de tu form React.
+  // Los archivos se validarán con validateStepFiles.
+  4: [], // El paso 4 de tu form React solo tiene cargas de archivos.
+};
 
-const nextStep = async () => { /* ... (tu lógica de nextStep como antes) ... */ currentStep.value < totalSteps ? currentStep.value++ : null; };
+const validateStepFiles = (stepToCheck: number): { valid: boolean; message?: string } => {
+  // No es necesario limpiar submissionError.value aquí, se hace en nextStep o finalSubmit
+  let missingFileDisplayNames: string[] = [];
+
+  // Helper para no repetir lógica
+  const checkFile = (fieldName: keyof typeof fileStatuses.value, displayName: string) => {
+    if (!fileStatuses.value[fieldName]?.uploaded && !skippedFiles.value[fieldName]) {
+      missingFileDisplayNames.push(displayName);
+    }
+  };
+
+  // Lógica basada en tu formulario React:
+  if (stepToCheck === 3) {
+    // En tu form React, el paso 3 incluye 'objetivoIdeal' (manejado por VeeValidate)
+    // y los archivos 'menuRestaurante' y 'costoPorPlato'.
+    // La validación de estos archivos se hacía al intentar pasar del paso 3.
+    checkFile('menuRestaurante', 'Menú del Restaurante');
+    checkFile('costoPorPlato', 'Costo por Plato');
+  } else if (stepToCheck === 4) {
+    // El paso 4 en tu form React es donde se suben los reportes de ventas.
+    // La validación final de todos los archivos (incluyendo los opcionales no omitidos)
+    // se hace en el 'onSubmit' general.
+    // Para 'nextStep' desde el paso 3 (hacia el 4), solo validamos los del paso 3.
+    // Para el 'finalSubmit' (que ocurre en el paso 4), validaremos todos globalmente.
+    // Sin embargo, si quieres una validación *al intentar pasar del paso 4* (aunque sea el último antes de enviar),
+    // podrías añadirla aquí. Pero es más común que la validación del último paso sea parte del 'finalSubmit'.
+    // Por ahora, dejaremos que 'finalSubmit' maneje la validación completa de archivos del paso 4.
+
+    // No obstante, si hubiera archivos obligatorios *solo* en el paso 4 que deben validarse *antes* de
+    // permitir el intento de submit (aunque 'nextStep' no aplica aquí), los pondrías.
+    // Según tu React, 'ventasMovimientos' y 'ventasProductos' son requeridos en el onSubmit final si no se omiten.
+    // 'ventasCliente' es opcional.
+  }
+  // Esta función 'validateStepFiles' se usa principalmente para la lógica de 'nextStep'.
+  // La validación exhaustiva de todos los archivos se hará en 'finalSubmit'.
+
+  if (missingFileDisplayNames.length > 0) {
+    // Construye el mensaje de error específico para los archivos faltantes de ESTE paso
+    const filesErrorMessage = `Por favor, sube o marca "No tengo este archivo" para:\n${missingFileDisplayNames.join('\n')}`;
+    return { valid: false, message: filesErrorMessage };
+  }
+
+  return { valid: true }; // Todos los archivos requeridos para este paso (si los hay) están o se omitieron.
+};
+
+
+const nextStep = async () => {
+  submissionError.value = ''; // Limpiar errores de validación global del paso anterior
+  const fieldsToValidate = stepFields[currentStep.value] || [];
+  let allStepFieldsValid = true;
+
+  // Valida cada campo de texto/select/checkbox del paso actual usando VeeValidate
+  for (const fieldName of fieldsToValidate) {
+    const result = await validateField(fieldName); // validateField es de useForm()
+    if (!result.valid) {
+      allStepFieldsValid = false;
+    }
+  }
+
+  // Valida los archivos específicos de este paso (si los hay)
+  // Según tu lógica React, la validación de archivos de menuRestaurante y costoPorPlato ocurre al final del paso 3.
+  let fileValidation = { valid: true, message: '' };
+  if (currentStep.value === 3) {
+    fileValidation = validateStepFiles(currentStep.value) as { valid: boolean; message: string };
+    if (!fileValidation.valid) {
+      allStepFieldsValid = false;
+      submissionError.value = fileValidation.message || "Faltan documentos financieros requeridos.";
+    }
+  }
+  // No hay archivos que validar con validateStepFiles para pasar del paso 1 o 2.
+  // Los archivos del paso 4 se validan en el finalSubmit.
+
+  if (allStepFieldsValid) {
+    if (currentStep.value < totalSteps) {
+      currentStep.value++;
+    }
+  } else if (!submissionError.value) { // Si no hay un error específico de archivos, muestra uno genérico de campos
+    submissionError.value = "Por favor, completa todos los campos requeridos y corrige los errores marcados.";
+  }
+};
+
+
 const prevStep = () => { /* ... (tu lógica de prevStep como antes) ... */ currentStep.value > 1 ? currentStep.value-- : null; };
 
 const updateFileStatusFromChild = (fieldName: string, file: File | null, isSkipped: boolean) => {
@@ -120,38 +206,58 @@ const handleFormValueUpdateFromChild = (fieldName: keyof FormValues, value: any)
   setFieldValue(fieldName, value);
 };
 
-const finalSubmit = handleSubmit(async (formData) => {
+const finalSubmit = handleSubmit(async (formData) => { // formData aquí son los valores validados por VeeValidate
   isLoading.value = true;
   submissionError.value = '';
-  // Validaciones de archivo aquí...
-  const allFilesValidation = validateStepFiles(totalSteps); // O una validación global de archivos
-  if (!allFilesValidation.valid) {
-    submissionError.value = allFilesValidation.message || `Documentos Faltantes`;
+
+  // Validación final de TODOS los archivos requeridos de todos los pasos
+  let allFilesStillValid = true;
+  let finalFileErrorMessages: string[] = [];
+  const checkAllFilesForFinalSubmit = (key: string, displayName: string, isOptional: boolean = false, isSkippedInReactLogic: boolean = false) => {
+    // 'isSkippedInReactLogic' se refiere a si el archivo tenía una opción de "No tengo" en tu React form.
+    // 'ventasMovimientos' no tenía skip en React, así que es obligatorio si no se sube.
+    const canBeSkipped = isSkippedInReactLogic;
+    if (!isOptional && !fileStatuses.value[key]?.uploaded && (!canBeSkipped || (canBeSkipped && !skippedFiles.value[key]))) {
+      allFilesStillValid = false;
+      finalFileErrorMessages.push(displayName);
+    }
+  };
+
+  // Basado en tu lógica de React `requiredFiles` y `skippedFiles`
+  checkAllFilesForFinalSubmit('menuRestaurante', 'Menú del Restaurante', false, true); // skippable en React
+  checkAllFilesForFinalSubmit('costoPorPlato', 'Costo por Plato', false, true);       // skippable en React
+  checkAllFilesForFinalSubmit('ventasMovimientos', 'Reporte de Movimientos', false, false); // NO skippable en React
+  checkAllFilesForFinalSubmit('ventasProductos', 'Reporte de Ventas por Producto', false, true); // skippable en React
+  checkAllFilesForFinalSubmit('ventasCliente', 'Reporte de Ventas por Cliente', true, true);    // opcional y skippable en React
+
+  if (!allFilesStillValid) {
+    submissionError.value = `Documentos Faltantes Requeridos:\n${finalFileErrorMessages.join('\n')}`;
     isLoading.value = false;
     return;
   }
 
   const dataToSend = new FormData();
-  // Llenar FormData...
-  // ... (tu lógica para construir FormData) ...
-  Object.keys(formData).forEach(keyStr => {
-    const key = keyStr as keyof FormValues;
+  // Llenar FormData con valores del formulario y archivos
+  (Object.keys(formData) as Array<keyof FormValues>).forEach(key => {
     const value = formData[key];
-    if (key in fileStatuses.value) {
+    if (key in fileStatuses.value) { // Verifica si es un campo de archivo conocido
       const fileInfo = fileStatuses.value[key as keyof typeof fileStatuses.value];
-      if (fileInfo.uploaded && fileInfo.file) dataToSend.append(key, fileInfo.file);
-    } else if (value !== undefined && value !== null) {
+      if (fileInfo.uploaded && fileInfo.file) {
+        dataToSend.append(key, fileInfo.file);
+      }
+      // Si está 'skipped', no se añade. Si es obligatorio y skipped, ya habría fallado la validación anterior.
+    } else if (value !== undefined && value !== null) { // Para otros campos (string, boolean, number)
       dataToSend.append(key, String(value));
     }
   });
 
-
   try {
     if (!businessId.value) throw new Error("Business ID no disponible");
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
-    isFormSubmitted.value = true;
-  } catch (error) {
-    submissionError.value = "Hubo un problema al enviar. Inténtalo de nuevo.";
+    isFormSubmitted.value = true; // Mostrar mensaje de éxito
+  } catch (error: any) {
+    console.error("Error en finalSubmit:", error);
+    submissionError.value = error.message || "Hubo un problema al enviar los datos. Por favor, inténtalo de nuevo.";
   } finally {
     isLoading.value = false;
   }
