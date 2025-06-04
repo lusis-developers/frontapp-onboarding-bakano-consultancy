@@ -16,7 +16,6 @@ import Header from './components/global/Header.vue';
 @use '@/styles/index.scss' as *;
 
 .main-content {
-  margin-top: 100px;
   min-height: 100vh;
 }
 </style>
