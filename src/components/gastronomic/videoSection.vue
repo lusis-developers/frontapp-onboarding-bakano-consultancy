@@ -30,9 +30,7 @@
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
 
-// Variable local para color gris de Tailwind.
-// Considera moverla a tu archivo global de variables si se usa frecuentemente.
-$text-gray-600: #718096; // Equivalente a Tailwind text-gray-600
+$text-gray-600: #718096;
 
 // Breakpoints (consistente con los componentes anteriores)
 $breakpoint-md: 768px;

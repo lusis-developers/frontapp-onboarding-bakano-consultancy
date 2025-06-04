@@ -37,9 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *; // Tus variables globales SCSS
 
-// Variables locales (si no están definidas globalmente o necesitas overrides)
-$text-gray-600: #718096; // Ejemplo, usa tu variable global si existe
-$border-radius-md: 0.375rem; // Ejemplo, usa tu variable global si existe
+$text-gray-600: #718096;
+$border-radius-md: 0.375rem;
 
 .submitted-message-content {
   display: flex;

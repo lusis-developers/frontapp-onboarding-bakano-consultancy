@@ -102,15 +102,15 @@ const handleInput = (fieldName: string, event: Event) => {
 .form-input {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
-  border: 1px solid $gray-300; // Asume $gray-300 o define uno: $gray-300: #D1D5DB;
-  border-radius: $border-radius-md; // Asume una variable global tipo 0.375rem
+  border: 1px solid $BAKANO-LIGHT;
+  border-radius: 8px;
   font-size: 1rem;
   color: $BAKANO-DARK;
   background-color: $white;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 
   &::placeholder {
-    color: $gray-400; // Asume $gray-400 o define uno: $gray-400: #9CA3AF;
+    color: $text-placeholder;
   }
 
   &:focus {

@@ -1,22 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import BusinessData from '@/components/wizards/businessData.vue'; // Importa BusinessData aquí
+import BusinessData from '@/components/wizards/businessData.vue';
 
-// Estado local para controlar la visibilidad del modal
 const isRegistrationModalVisible = ref(false);
 
-// Ya no necesitamos 'emit' para solicitar la apertura a un padre para ESTE modal.
-// const emit = defineEmits(['requestOpenRegistrationModal']); // Puedes quitar esto si no hay otros listeners
-
 const handleOpenFormClick = () => {
-  // console.log('CallToAction: Abriendo modal localmente...'); // Log para depuración
+  console.log('CallToAction: Botón "¡Comenzar Ahora!" clickeado. Abriendo modal BusinessData...');
   isRegistrationModalVisible.value = true;
-  // Ya no emitimos al padre para abrir ESTE modal:
-  // emit('requestOpenRegistrationModal');
 };
 
 const handleModalClose = (newOpenState: boolean) => {
-  // console.log('CallToAction: Modal cerrándose, nuevo estado:', newOpenState); // Log para depuración
   isRegistrationModalVisible.value = newOpenState;
 };
 </script>
@@ -48,37 +41,120 @@ const handleModalClose = (newOpenState: boolean) => {
   <BusinessData
     :open="isRegistrationModalVisible"
     @update:open="handleModalClose"
-    :is-pre-submitted="false" 
+    :is-pre-submitted="false"
   />
 </template>
 
 <style lang="scss" scoped>
-@use '@/styles/index.scss' as *;
+@use '@/styles/index.scss' as *; // Tus variables globales SCSS
 
-// ... (tus estilos SCSS existentes para .cta-section, .cta-container, etc.)
+// Variables de utilidad basadas en tu paleta
+$text-body-color-on-light-bg: rgba($BAKANO-DARK, 0.75); // Para texto secundario sobre fondos claros
+$card-background-color: $white;
+$section-background-color: $BAKANO-LIGHT; // Fondo claro para la sección, hace resaltar la tarjeta blanca
+
+$border-radius-default: 0.5rem;
+$border-radius-large: 1rem;
+
+// Sombras (pueden ser genéricas, ya que no dependen directamente del color)
+$box-shadow-subtle: 0 4px 15px rgba(0, 0, 0, 0.06);
+$box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+$breakpoint-md: 768px;
+
+.cta-section {
+  background-color: $section-background-color; // Usamos BAKANO-LIGHT para el fondo de la sección
+  padding: 4rem 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 6rem 1rem;
+  }
+}
+
+.cta-container {
+  max-width: 800px; // Ajustado para que no sea excesivamente ancho
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.cta-card {
+  background-color: $card-background-color; // Tarjeta blanca
+  border-radius: $border-radius-large;
+  padding: 2.5rem;
+  box-shadow: $box-shadow-medium;
+  text-align: center;
+  // No usamos borde explícito, la sombra y el contraste de fondo son suficientes
+
+  @media (min-width: $breakpoint-md) {
+    padding: 3rem 3.5rem;
+  }
+}
+
+.cta-title {
+  font-family: $font-principal;
+  font-weight: 700;
+  color: $BAKANO-DARK;
+  font-size: 1.8rem; // Ligeramente ajustado
+  line-height: 1.35;
+  margin-bottom: 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    font-size: 2.2rem;
+  }
+}
+
+.cta-title-gradient {
+  background-image: linear-gradient(to right, $BAKANO-PINK, $BAKANO-PURPLE);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cta-description {
+  font-family: $font-secondary;
+  color: $text-body-color-on-light-bg; // Texto oscuro pero suavizado
+  font-size: 1.05rem;
+  line-height: 1.75;
+  max-width: 580px;
+  margin: 0 auto 2rem auto;
+
+  @media (min-width: $breakpoint-md) {
+    font-size: 1.1rem;
+  }
+}
+
+.cta-actions {
+  margin-top: 1.5rem;
+}
 
 .cta-button {
   display: inline-block;
   background-color: $BAKANO-PINK;
-  color: $white;
+  color: $white; // $text-light podría ser una opción si $white es demasiado brillante
   font-family: $font-principal;
-  font-weight: 500;
-  padding: 1.25rem 2.5rem;
-  border-radius: 0.5rem;
+  font-weight: 600;
+  padding: 0.9rem 2.25rem;
+  border-radius: $border-radius-default;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  transition: background-color 0.25s ease-out, transform 0.15s ease-out, box-shadow 0.25s ease-out;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 8px rgba($BAKANO-PINK, 0.3); // Sombra sutil con el color del botón
 
   &:hover {
-    background-color: darken($BAKANO-PINK, 7%);
-    transform: translateY(-1px);
+    background-color: darken($BAKANO-PINK, 8%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($BAKANO-PINK, 0.4);
   }
 
   &:active {
-    transform: translateY(0px);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba($BAKANO-PINK, 0.3);
   }
 }
 </style>

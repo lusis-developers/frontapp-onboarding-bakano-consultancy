@@ -159,15 +159,15 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   font-weight: 600; // font-semibold
   margin-bottom: 0.75rem; // mb-3 o mb-4
   padding-top: 0.5rem;
-  border-top: 1px solid $gray-200; // Define $gray-200
+  border-top: 1px solid $BAKANO-LIGHT;
   margin-top: 1rem;
 }
 
 .form-textarea {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
-  border: 1px solid $gray-300;
-  border-radius: $border-radius-md;
+  border: 1px solid $BAKANO-LIGHT;
+  border-radius: 8px;
   font-size: 1rem;
   color: $BAKANO-DARK;
   background-color: $white;
@@ -175,7 +175,7 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   min-height: 80px; // Para que no sea demasiado pequeño
 
   &::placeholder {
-    color: $gray-400;
+    color: $text-placeholder;
   }
 
   &:focus {
@@ -198,8 +198,8 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 // }
 
 .file-description {
-  font-size: 0.8rem; // text-xs
-  color: $text-gray-500; // Define $text-gray-500: #6B7280;
+  font-size: 1rem; // text-xs
+  color: $text-placeholder;
   margin-bottom: 0.25rem; // mb-1
 }
 
@@ -212,9 +212,9 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   font-size: 0.9rem;
   color: $BAKANO-DARK;
   padding: 0.5rem; // Ajusta según necesidad
-  border: 1px dashed $gray-300; // Borde punteado para indicar dropzone/upload
-  border-radius: $border-radius-md;
-  background-color: $gray-50; // Un fondo ligeramente diferente
+  border: 1px dashed $BAKANO-LIGHT;
+  border-radius: 8px;
+  background-color: $BAKANO-LIGHT;
   cursor: pointer;
   width: 100%;
 
@@ -228,7 +228,7 @@ const handleSkipChange = (fieldName: string, event: Event) => {
     color: $white;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: $border-radius-sm;
+    border-radius: 8px;
     cursor: pointer;
     margin-right: 1rem;
     transition: background-color 0.2s ease;
@@ -247,12 +247,12 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   }
 
   &:disabled {
-    background-color: $gray-100; // Define $gray-100
+    background-color: $BAKANO-LIGHT;
     cursor: not-allowed;
     border-style: solid;
 
     &::file-selector-button {
-      background-color: $gray-400;
+      background-color: $BAKANO-LIGHT;
       cursor: not-allowed;
     }
   }
@@ -269,8 +269,8 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   // Copiado de Step2 para consistencia
   width: 1.15rem;
   height: 1.15rem;
-  border-radius: $border-radius-sm;
-  border: 1px solid $gray-300;
+  border-radius: 8px;
+  border: 2px solid $BAKANO-LIGHT;
   cursor: pointer;
   appearance: none;
   position: relative;
@@ -300,8 +300,8 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 }
 
 .form-label-checkbox {
-  font-size: 0.9rem;
-  color: $text-gray-700;
+  font-size: 1rem;
+  color: $text-placeholder;
   cursor: pointer;
   font-weight: normal;
 }
@@ -311,7 +311,7 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   padding: 0.25rem 0.75rem;
   background-color: lighten($BAKANO-GREEN, 45%); // Asume $BAKANO-GREEN de tus vars
   color: darken($BAKANO-GREEN, 15%);
-  border-radius: $border-radius-lg; // Asume $border-radius-lg
+  border-radius: 8px; // Asume 8px
   font-size: 0.8rem;
   margin-top: 0.5rem;
 

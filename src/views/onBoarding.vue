@@ -2,20 +2,6 @@
 import CallToAction from '@/components/gastronomic/callToAction.vue';
 import HeroSection from '@/components/gastronomic/heroSection.vue';
 import VideoSection from '@/components/gastronomic/videoSection.vue';
-import BusinessData from '@/components/wizards/businessData.vue';
-import { ref } from 'vue';
-
-
-// Si tenías ProcessSteps y lo necesitas, también lo importarías aquí
-// import ProcessSteps from '@/components/ProcessSteps.vue';
-
-
-const isRegistrationModalVisible = ref(false);
-
-const openRegistrationModal = () => {
-  console.log('Onboarding: Recibida solicitud para abrir modal.'); // Log para depuración
-  isRegistrationModalVisible.value = true;
-};
 </script>
 
 <template>
@@ -23,7 +9,7 @@ const openRegistrationModal = () => {
     <main class="main-content">
       <HeroSection />
       <VideoSection />
-      <CallToAction @request-open-registration-modal="openRegistrationModal" />
+      <CallToAction/>
       </main>
     <Footer />
   </div>

@@ -152,15 +152,15 @@ const desafioOptions = [
 .form-select {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
-  border: 1px solid $gray-300; // Define $gray-300: #D1D5DB;
-  border-radius: $border-radius-md; // Define $border-radius-md: 0.375rem;
+  border: 1px solid $BAKANO-LIGHT;
+  border-radius: 8px; // Define 8px: 0.375rem;
   font-size: 1rem;
   color: $BAKANO-DARK;
   background-color: $white;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 
   &::placeholder {
-    color: $gray-400; // Define $gray-400: #9CA3AF;
+    color: $text-placeholder;
   }
 
   &:focus {
@@ -196,8 +196,8 @@ const desafioOptions = [
 .form-checkbox {
   width: 1.25rem; // w-5
   height: 1.25rem; // h-5
-  border-radius: $border-radius-sm; // Define $border-radius-sm: 0.25rem;
-  border: 1px solid $gray-300;
+  border-radius: 8px; // Define 8px: 0.25rem;
+  border: 2px solid rgba($BAKANO-DARK, 0.3);
   cursor: pointer;
   appearance: none;
   position: relative;
@@ -231,7 +231,7 @@ const desafioOptions = [
   margin-bottom: 0; // Anular el margen del label normal
   cursor: pointer;
   font-weight: normal; // El label de checkbox no suele ser bold
-  color: $text-gray-700; // Define $text-gray-700: #374151;
+  color: $text-placeholder;
 }
 
 .error-text {

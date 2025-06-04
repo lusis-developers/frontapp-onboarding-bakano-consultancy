@@ -98,7 +98,7 @@ const fileFields = [
   font-weight: 600;
   margin-bottom: 0.75rem;
   padding-top: 0.5rem;
-  border-top: 1px solid $gray-200; // Define $gray-200
+  border-top: 1px solid $BAKANO-LIGHT;
   margin-top: 1rem;
 }
 
@@ -107,8 +107,8 @@ const fileFields = [
 // }
 
 .file-description {
-  font-size: 0.8rem;
-  color: $text-gray-500; // Define $text-gray-500
+  font-size: 1rem;
+  color: $text-placeholder;
   margin-bottom: 0.25rem;
 }
 
@@ -121,9 +121,9 @@ const fileFields = [
   font-size: 0.9rem;
   color: $BAKANO-DARK;
   padding: 0.5rem;
-  border: 1px dashed $gray-300; // Define $gray-300
-  border-radius: $border-radius-md; // Define $border-radius-md
-  background-color: $gray-50; // Define $gray-50
+  border: 1px dashed $BAKANO-LIGHT;
+  border-radius: 8px; // Define 8px
+  background-color: $BAKANO-LIGHT;
   cursor: pointer;
   width: 100%;
 
@@ -136,7 +136,7 @@ const fileFields = [
     color: $white;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: $border-radius-sm; // Define $border-radius-sm
+    border-radius: 8px; // Define 8px
     cursor: pointer;
     margin-right: 1rem;
     transition: background-color 0.2s ease;
@@ -155,16 +155,14 @@ const fileFields = [
   }
 
   &:disabled {
-    background-color: $gray-100; // Define $gray-100
+    background-color: $BAKANO-LIGHT;
     cursor: not-allowed;
     border-style: solid;
 
     &::file-selector-button {
-      background-color: $gray-400;
+      background-color: $BAKANO-LIGHT;
       cursor: not-allowed;
     }
-
-    // Define $gray-400
   }
 }
 
@@ -178,8 +176,8 @@ const fileFields = [
 .form-checkbox {
   width: 1.15rem;
   height: 1.15rem;
-  border-radius: $border-radius-sm;
-  border: 1px solid $gray-300;
+  border-radius: 8px;
+  border: 2px solid $BAKANO-LIGHT;
   cursor: pointer;
   appearance: none;
   position: relative;
@@ -210,9 +208,9 @@ const fileFields = [
 
 .form-label-checkbox {
   font-size: 0.9rem;
-  color: $text-gray-700;
+  color: $text-placeholder;
   cursor: pointer;
-  font-weight: normal; // Define $text-gray-700
+  font-weight: normal;
 }
 
 .file-status-chip {
@@ -220,9 +218,9 @@ const fileFields = [
   padding: 0.25rem 0.75rem;
   background-color: lighten($BAKANO-GREEN, 45%);
   color: darken($BAKANO-GREEN, 15%);
-  border-radius: $border-radius-lg;
+  border-radius: 8px;
   font-size: 0.8rem;
-  margin-top: 0.5rem; // Define $border-radius-lg
+  margin-top: 0.5rem; // Define 8px
 
   .checkmark {
     color: darken($BAKANO-GREEN, 15%);
