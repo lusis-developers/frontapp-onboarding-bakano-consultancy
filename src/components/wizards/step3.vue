@@ -1,40 +1,24 @@
-// src/components/wizard/businessdata/Step3_FinancialDocs.vue
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
 import { Field, ErrorMessage } from 'vee-validate';
 
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
-interface Props {
-  formValues: {
-    objetivoIdeal?: string;
-    // Los campos de archivo no estarán directamente en formValues con File objects
-    // pero los necesitamos para la validación de VeeValidate si se definen en el schema
-  };
-  errors: Record<string, string | undefined>;
-  fileStatuses: Record<string, FileStatus>; // ej: { menuRestaurante: { name: 'menu.pdf', uploaded: true, file: FileObject } }
-  skippedFiles: Record<string, boolean>; // ej: { menuRestaurante: true }
-}
-const props = defineProps<Props>();
+const props = defineProps<{
+  values: Record<string, any>;
+  fileStatuses: Record<string, FileStatus>;
+  skippedFiles: Record<string, boolean>;
+}>();
+
 const emit = defineEmits(['update:form-value', 'update-file']);
 
-const handleInput = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:form-value', fieldName, target.value);
-};
-
 const handleFileChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0] || null;
-  // Pasa el estado actual de 'skipped' para este archivo
+  const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
 
 const handleSkipChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const isSkipped = target.checked;
-  // Si se marca como skip, el 'file' es null
-  emit('update-file', fieldName, null, isSkipped);
+  emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 </script>
 
@@ -44,12 +28,11 @@ const handleSkipChange = (fieldName: string, event: Event) => {
       <label for="objetivoIdeal" class="form-label">Objetivo ideal a lograr*</label>
       <Field name="objetivoIdeal" v-slot="{ field, meta }">
         <textarea
+          v-bind="field"
           id="objetivoIdeal"
           placeholder="Describe tu objetivo"
-          :value="props.formValues.objetivoIdeal"
-          @input="event => handleInput('objetivoIdeal', event)"
           class="form-textarea"
-          :class="{ 'input-error': !meta.valid && meta.touched && errors.objetivoIdeal }"
+          :class="{ 'input-error': !meta.valid && meta.touched }"
           rows="4"
         ></textarea>
       </Field>
@@ -58,51 +41,53 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 
     <div class="form-group-title">Documentos Financieros*</div>
 
+    <!-- Menú del Restaurante -->
     <div class="form-field file-field">
       <label for="menuRestaurante" class="form-label-file">Menú del Restaurante (PDF)</label>
       <p class="file-description">Sube tu menú actual en formato PDF</p>
       <div class="file-input-area">
         <Field name="menuRestaurante" v-slot="{ field, meta }">
-           <input
+          <input
             type="file"
             id="menuRestauranteFile"
             accept=".pdf"
             @change="event => handleFileChange('menuRestaurante', event)"
             class="form-input-file"
             :disabled="props.skippedFiles.menuRestaurante"
-            :class="{ 'input-error': !meta.valid && meta.touched && errors.menuRestaurante && !props.skippedFiles.menuRestaurante }"
+            :class="{ 'input-error': !meta.valid && meta.touched && !props.skippedFiles.menuRestaurante }"
           />
         </Field>
-         <div v-if="props.fileStatuses.menuRestaurante?.uploaded && !props.skippedFiles.menuRestaurante" class="file-status-chip">
+        <div v-if="props.fileStatuses.menuRestaurante?.uploaded && !props.skippedFiles.menuRestaurante" class="file-status-chip">
           {{ props.fileStatuses.menuRestaurante.name }} <span class="checkmark">✓</span>
         </div>
       </div>
       <div class="skip-file-option">
         <input
-            type="checkbox"
-            :id="'skip_menuRestaurante'"
-            :checked="props.skippedFiles.menuRestaurante"
-            @change="event => handleSkipChange('menuRestaurante', event)"
-            class="form-checkbox"
+          type="checkbox"
+          :id="'skip_menuRestaurante'"
+          :checked="props.skippedFiles.menuRestaurante"
+          @change="event => handleSkipChange('menuRestaurante', event)"
+          class="form-checkbox"
         />
         <label :for="'skip_menuRestaurante'" class="form-label-checkbox">No tengo este archivo</label>
       </div>
       <ErrorMessage name="menuRestaurante" v-if="!props.skippedFiles.menuRestaurante" class="error-text" />
     </div>
 
+    <!-- Costo por Plato -->
     <div class="form-field file-field">
       <label for="costoPorPlato" class="form-label-file">Costo por Plato (PDF o Excel)</label>
       <p class="file-description">Documento detallando el costo de producción de cada plato</p>
       <div class="file-input-area">
-         <Field name="costoPorPlato" v-slot="{ field, meta }">
-           <input
+        <Field name="costoPorPlato" v-slot="{ field, meta }">
+          <input
             type="file"
             id="costoPorPlatoFile"
             accept=".pdf,.xlsx,.xls"
             @change="event => handleFileChange('costoPorPlato', event)"
             class="form-input-file"
             :disabled="props.skippedFiles.costoPorPlato"
-            :class="{ 'input-error': !meta.valid && meta.touched && errors.costoPorPlato && !props.skippedFiles.costoPorPlato }"
+            :class="{ 'input-error': !meta.valid && meta.touched && !props.skippedFiles.costoPorPlato }"
           />
         </Field>
         <div v-if="props.fileStatuses.costoPorPlato?.uploaded && !props.skippedFiles.costoPorPlato" class="file-status-chip">
@@ -110,12 +95,12 @@ const handleSkipChange = (fieldName: string, event: Event) => {
         </div>
       </div>
       <div class="skip-file-option">
-         <input
-            type="checkbox"
-            :id="'skip_costoPorPlato'"
-            :checked="props.skippedFiles.costoPorPlato"
-            @change="event => handleSkipChange('costoPorPlato', event)"
-            class="form-checkbox"
+        <input
+          type="checkbox"
+          :id="'skip_costoPorPlato'"
+          :checked="props.skippedFiles.costoPorPlato"
+          @change="event => handleSkipChange('costoPorPlato', event)"
+          class="form-checkbox"
         />
         <label :for="'skip_costoPorPlato'" class="form-label-checkbox">No tengo este archivo</label>
       </div>
@@ -126,10 +111,6 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
-// Importa los estilos comunes de form-field, form-label, etc.
-// Podrías crear un _forms.scss y hacer @use si se repiten mucho,
-// o copiar los estilos relevantes de Step1/Step2. Por brevedad, los omito aquí,
-// asumiendo que tendrás una forma consistente de estilizar.
 
 .form-step {
   display: flex;
@@ -138,7 +119,6 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 }
 
 .form-field {
-  // Estilo base para cada grupo de input
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -155,9 +135,9 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 }
 
 .form-group-title {
-  font-size: 1.1rem; // text-lg
-  font-weight: 600; // font-semibold
-  margin-bottom: 0.75rem; // mb-3 o mb-4
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid $BAKANO-LIGHT;
   margin-top: 1rem;
@@ -172,7 +152,7 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   color: $BAKANO-DARK;
   background-color: $white;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  min-height: 80px; // Para que no sea demasiado pequeño
+  min-height: 80px;
 
   &::placeholder {
     color: $text-placeholder;
@@ -193,25 +173,21 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   }
 }
 
-// .file-field {
-//   // Estilos específicos si un campo de archivo necesita más estructura
-// }
-
 .file-description {
-  font-size: 1rem; // text-xs
+  font-size: 1rem;
   color: $text-placeholder;
-  margin-bottom: 0.25rem; // mb-1
+  margin-bottom: 0.25rem;
 }
 
 .file-input-area {
-  position: relative; // Para el checkmark si se añade
+  position: relative;
 }
 
 .form-input-file {
   font-family: $font-secondary;
   font-size: 0.9rem;
   color: $BAKANO-DARK;
-  padding: 0.5rem; // Ajusta según necesidad
+  padding: 0.5rem;
   border: 1px dashed $BAKANO-LIGHT;
   border-radius: 8px;
   background-color: $BAKANO-LIGHT;
@@ -223,7 +199,6 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   }
 
   &::file-selector-button {
-    // Estilizar el botón "Seleccionar archivo"
     background-color: $BAKANO-PURPLE;
     color: $white;
     border: none;
@@ -266,7 +241,6 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 }
 
 .form-checkbox {
-  // Copiado de Step2 para consistencia
   width: 1.15rem;
   height: 1.15rem;
   border-radius: 8px;
@@ -309,9 +283,9 @@ const handleSkipChange = (fieldName: string, event: Event) => {
 .file-status-chip {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background-color: lighten($BAKANO-GREEN, 45%); // Asume $BAKANO-GREEN de tus vars
+  background-color: lighten($BAKANO-GREEN, 45%);
   color: darken($BAKANO-GREEN, 15%);
-  border-radius: 8px; // Asume 8px
+  border-radius: 8px;
   font-size: 0.8rem;
   margin-top: 0.5rem;
 

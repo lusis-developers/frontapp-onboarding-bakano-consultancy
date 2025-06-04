@@ -1,35 +1,7 @@
-// src/components/wizard/businessdata/Step2_FinancialDetails.vue
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
 import { Field, ErrorMessage } from 'vee-validate';
 
-interface Props {
-  formValues: {
-    ingresoMensual?: string;
-    ingresoAnual?: string;
-    vendePorWhatsapp?: boolean;
-    gananciaWhatsapp?: string;
-    desafioPrincipal?: string;
-  };
-  errors: Record<string, string | undefined>;
-}
-const props = defineProps<Props>();
-const emit = defineEmits(['update:form-value']);
-
-const handleInput = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:form-value', fieldName, target.value);
-};
-
-const handleCheckboxChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:form-value', fieldName, target.checked);
-};
-
-const handleSelectChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  emit('update:form-value', fieldName, target.value);
-};
+defineProps<{ values: Record<string, any> }>();
 
 const desafioOptions = [
   { value: "aumentar_clientes", label: "Aumentar el número de clientes" },
@@ -38,6 +10,7 @@ const desafioOptions = [
   { value: "atencion_cliente", label: "Protocolos para atención al cliente estandarizada" },
   { value: "operaciones", label: "Protocolos de operaciones (administrativas, logística, inventario)" },
 ];
+
 </script>
 
 <template>
@@ -46,13 +19,12 @@ const desafioOptions = [
       <label for="ingresoMensual" class="form-label">Ingreso mensual promedio*</label>
       <Field name="ingresoMensual" v-slot="{ field, meta }">
         <input
+          v-bind="field"
           id="ingresoMensual"
           type="number"
           placeholder="$"
-          :value="props.formValues.ingresoMensual"
-          @input="event => handleInput('ingresoMensual', event)"
           class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched && errors.ingresoMensual }"
+          :class="{ 'input-error': !meta.valid && meta.touched }"
         />
       </Field>
       <ErrorMessage name="ingresoMensual" class="error-text" />
@@ -62,13 +34,12 @@ const desafioOptions = [
       <label for="ingresoAnual" class="form-label">Ingreso anual*</label>
       <Field name="ingresoAnual" v-slot="{ field, meta }">
         <input
+          v-bind="field"
           id="ingresoAnual"
           type="number"
           placeholder="$"
-          :value="props.formValues.ingresoAnual"
-          @input="event => handleInput('ingresoAnual', event)"
           class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched && errors.ingresoAnual }"
+          :class="{ 'input-error': !meta.valid && meta.touched }"
         />
       </Field>
       <ErrorMessage name="ingresoAnual" class="error-text" />
@@ -77,10 +48,9 @@ const desafioOptions = [
     <div class="form-field form-field-checkbox">
       <Field name="vendePorWhatsapp" type="checkbox" v-slot="{ field }">
         <input
-          type="checkbox"
+          v-bind="field"
           id="vendePorWhatsapp"
-          :checked="props.formValues.vendePorWhatsapp"
-          @change="event => handleCheckboxChange('vendePorWhatsapp', event)"
+          type="checkbox"
           class="form-checkbox"
         />
       </Field>
@@ -88,17 +58,16 @@ const desafioOptions = [
     </div>
     <ErrorMessage name="vendePorWhatsapp" class="error-text" />
 
-    <div v-if="props.formValues.vendePorWhatsapp" class="form-field">
+    <div v-if="values.vendePorWhatsapp" class="form-field">
       <label for="gananciaWhatsapp" class="form-label">¿Cuánto ganas por WhatsApp? (mensual estimado)</label>
       <Field name="gananciaWhatsapp" v-slot="{ field, meta }">
         <input
+          v-bind="field"
           id="gananciaWhatsapp"
           type="text"
           placeholder="$"
-          :value="props.formValues.gananciaWhatsapp"
-          @input="event => handleInput('gananciaWhatsapp', event)"
           class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched && errors.gananciaWhatsapp }"
+          :class="{ 'input-error': !meta.valid && meta.touched }"
         />
       </Field>
       <ErrorMessage name="gananciaWhatsapp" class="error-text" />
@@ -108,11 +77,10 @@ const desafioOptions = [
       <label for="desafioPrincipal" class="form-label">Desafío principal*</label>
       <Field name="desafioPrincipal" v-slot="{ field, meta }">
         <select
+          v-bind="field"
           id="desafioPrincipal"
-          :value="props.formValues.desafioPrincipal"
-          @change="event => handleSelectChange('desafioPrincipal', event)"
           class="form-select"
-          :class="{ 'input-error': !meta.valid && meta.touched && errors.desafioPrincipal }"
+          :class="{ 'input-error': !meta.valid && meta.touched }"
         >
           <option value="" disabled>Selecciona un desafío</option>
           <option v-for="option in desafioOptions" :key="option.value" :value="option.value">

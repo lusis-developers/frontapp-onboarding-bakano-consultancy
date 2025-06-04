@@ -1,44 +1,61 @@
-// src/components/wizard/businessdata/Step4_SalesReports.vue
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
-import { Field, ErrorMessage } from 'vee-validate'; // No se usa Field directamente para inputs tipo file si manejamos el estado externamente
 
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
-interface Props {
-  formValues: {}; // No hay otros campos de texto en este paso según el original
-  errors: Record<string, string | undefined>;
+const props = defineProps<{
+  values: Record<string, any>;
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
-}
-const props = defineProps<Props>();
-const emit = defineEmits(['update-file']); // Solo 'update-file' si no hay otros campos de texto
+}>();
+
+const emit = defineEmits(['update-file']);
 
 const handleFileChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0] || null;
+  const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
 
 const handleSkipChange = (fieldName: string, event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const isSkipped = target.checked;
-  emit('update-file', fieldName, null, isSkipped);
+  emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
 const fileFields = [
-  { name: 'ventasMovimientos', label: 'Reporte de Movimientos (Excel)', description: 'Registro de movimientos y transacciones del restaurante', accept: '.xlsx,.xls', skippable: false },
-  { name: 'ventasProductos', label: 'Reporte de Ventas por Producto (Excel)', description: 'Detalle de ventas desglosado por cada producto', accept: '.xlsx,.xls', skippable: true },
-  { name: 'ventasCliente', label: 'Reporte de Ventas por Cliente (Excel)', description: 'Análisis de ventas categorizado por cliente', accept: '.xlsx,.xls', skippable: true },
+  {
+    name: 'ventasMovimientos',
+    label: 'Reporte de Movimientos (Excel)',
+    description: 'Registro de movimientos y transacciones del restaurante',
+    accept: '.xlsx,.xls',
+    skippable: false,
+  },
+  {
+    name: 'ventasProductos',
+    label: 'Reporte de Ventas por Producto (Excel)',
+    description: 'Detalle de ventas desglosado por cada producto',
+    accept: '.xlsx,.xls',
+    skippable: true,
+  },
+  {
+    name: 'ventasCliente',
+    label: 'Reporte de Ventas por Cliente (Excel)',
+    description: 'Análisis de ventas categorizado por cliente',
+    accept: '.xlsx,.xls',
+    skippable: true,
+  },
 ];
 </script>
 
 <template>
   <div class="form-step">
     <div class="form-group-title">Reportes de Ventas*</div>
-
-    <div v-for="fField in fileFields" :key="fField.name" class="form-field file-field">
-      <label :for="fField.name + 'File'" class="form-label-file">{{ fField.label }}</label>
+    <div
+      v-for="fField in fileFields"
+      :key="fField.name"
+      class="form-field file-field"
+    >
+      <label :for="fField.name + 'File'" class="form-label-file">
+        {{ fField.label }}
+      </label>
       <p class="file-description">{{ fField.description }}</p>
       <div class="file-input-area">
         <input
@@ -48,22 +65,28 @@ const fileFields = [
           @change="event => handleFileChange(fField.name, event)"
           class="form-input-file"
           :disabled="props.skippedFiles[fField.name]"
-          :class="{ 'input-error': errors[fField.name] && !props.skippedFiles[fField.name] }"
+          :class="{ 'input-error': !props.skippedFiles[fField.name] && !props.fileStatuses[fField.name]?.uploaded && props.values[fField.name] === undefined }"
         />
-        <div v-if="props.fileStatuses[fField.name]?.uploaded && !props.skippedFiles[fField.name]" class="file-status-chip">
+        <div
+          v-if="props.fileStatuses[fField.name]?.uploaded && !props.skippedFiles[fField.name]"
+          class="file-status-chip"
+        >
           {{ props.fileStatuses[fField.name].name }} <span class="checkmark">✓</span>
         </div>
       </div>
       <div v-if="fField.skippable" class="skip-file-option">
-         <input
-            type="checkbox"
-            :id="'skip_' + fField.name"
-            :checked="props.skippedFiles[fField.name]"
-            @change="event => handleSkipChange(fField.name, event)"
-            class="form-checkbox"
+        <input
+          type="checkbox"
+          :id="'skip_' + fField.name"
+          :checked="props.skippedFiles[fField.name]"
+          @change="event => handleSkipChange(fField.name, event)"
+          class="form-checkbox"
         />
-        <label :for="'skip_' + fField.name" class="form-label-checkbox">No tengo este archivo</label>
+        <label :for="'skip_' + fField.name" class="form-label-checkbox"
+          >No tengo este archivo</label
+        >
       </div>
+      <!-- Error message for VeeValidate -->
       <ErrorMessage :name="fField.name" v-if="!props.skippedFiles[fField.name]" class="error-text" />
     </div>
   </div>
@@ -102,10 +125,6 @@ const fileFields = [
   margin-top: 1rem;
 }
 
-// .file-field {
-//   /* specific styles if needed */
-// }
-
 .file-description {
   font-size: 1rem;
   color: $text-placeholder;
@@ -122,7 +141,7 @@ const fileFields = [
   color: $BAKANO-DARK;
   padding: 0.5rem;
   border: 1px dashed $BAKANO-LIGHT;
-  border-radius: 8px; // Define 8px
+  border-radius: 8px;
   background-color: $BAKANO-LIGHT;
   cursor: pointer;
   width: 100%;
@@ -136,7 +155,7 @@ const fileFields = [
     color: $white;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 8px; // Define 8px
+    border-radius: 8px;
     cursor: pointer;
     margin-right: 1rem;
     transition: background-color 0.2s ease;
@@ -220,7 +239,7 @@ const fileFields = [
   color: darken($BAKANO-GREEN, 15%);
   border-radius: 8px;
   font-size: 0.8rem;
-  margin-top: 0.5rem; // Define 8px
+  margin-top: 0.5rem;
 
   .checkmark {
     color: darken($BAKANO-GREEN, 15%);

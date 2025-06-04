@@ -41,11 +41,23 @@ const optionalFileSchema = z.instanceof(File).optional();
 const registrationFormSchema = z.object({
   instagram: z.string().min(1, "Cuenta de Instagram es requerida"),
   tiktok: z.string().min(1, "Cuenta de TikTok es requerida"),
-  empleados: z.string().min(1, "Número de empleados es requerido"),
-  ingresoMensual: z.string().min(1, "Ingreso mensual es requerido"),
-  ingresoAnual: z.string().min(1, "Ingreso anual es requerido"),
+  empleados: z.preprocess(
+    v => (typeof v === "number" ? String(v) : v),
+    z.string().min(1, "Número de empleados es requerido")
+  ),
+  ingresoMensual: z.preprocess(
+    v => (typeof v === "number" ? String(v) : v),
+    z.string().min(1, "Ingreso mensual es requerido")
+  ),
+  ingresoAnual: z.preprocess(
+    v => (typeof v === "number" ? String(v) : v),
+    z.string().min(1, "Ingreso anual es requerido")
+  ),
   vendePorWhatsapp: z.boolean().optional(),
-  gananciaWhatsapp: z.string().optional(),
+  gananciaWhatsapp: z.preprocess(
+    v => (typeof v === "number" ? String(v) : v),
+    z.string().optional()
+  ),
   desafioPrincipal: z.string().min(1, "Desafío principal es requerido"),
   objetivoIdeal: z.string().min(1, "Objetivo ideal es requerido"),
   menuRestaurante: fileSchema,
@@ -53,10 +65,15 @@ const registrationFormSchema = z.object({
   ventasMovimientos: fileSchema,
   ventasProductos: fileSchema,
   ventasCliente: optionalFileSchema,
-}).refine(data => !data.vendePorWhatsapp || (data.vendePorWhatsapp && data.gananciaWhatsapp && data.gananciaWhatsapp.length > 0), {
-  message: "Si vendes por WhatsApp, indica la ganancia estimada.",
-  path: ["gananciaWhatsapp"],
-});
+}).refine(
+  data =>
+    !data.vendePorWhatsapp ||
+    (data.vendePorWhatsapp && data.gananciaWhatsapp && data.gananciaWhatsapp.length > 0),
+  {
+    message: "Si vendes por WhatsApp, indica la ganancia estimada.",
+    path: ["gananciaWhatsapp"],
+  }
+);
 type FormValues = z.infer<typeof registrationFormSchema>;
 
 const { handleSubmit, values, errors, setFieldValue, validateField, meta, resetForm } = useForm<FormValues>({
@@ -206,16 +223,23 @@ const handleFormValueUpdateFromChild = (fieldName: keyof FormValues, value: any)
   setFieldValue(fieldName, value);
 };
 
-const finalSubmit = handleSubmit(async (formData) => { // formData aquí son los valores validados por VeeValidate
+const finalSubmit = handleSubmit(async (formDataValidatedByVeeValidate) => { // Cambié el nombre del parámetro para claridad
+  // --- CONSOLE LOG AQUÍ ---
+  console.log('🔴 finalSubmit EJECUTADO');
+  console.log('BusinessData: Contenido del formulario validado por VeeValidate (antes de procesar archivos y enviar):', JSON.parse(JSON.stringify(formDataValidatedByVeeValidate)));
+  // Usamos JSON.parse(JSON.stringify(...)) para obtener una copia limpia del objeto y evitar problemas con proxies de Vue al loguear.
+
+  // También puedes loguear el estado de los archivos que manejas por separado:
+  console.log('BusinessData: Estado de fileStatuses:', JSON.parse(JSON.stringify(fileStatuses.value)));
+  console.log('BusinessData: Estado de skippedFiles:', JSON.parse(JSON.stringify(skippedFiles.value)));
+
   isLoading.value = true;
   submissionError.value = '';
 
-  // Validación final de TODOS los archivos requeridos de todos los pasos
+  // Validación final de TODOS los archivos requeridos (tu lógica existente)
   let allFilesStillValid = true;
   let finalFileErrorMessages: string[] = [];
   const checkAllFilesForFinalSubmit = (key: string, displayName: string, isOptional: boolean = false, isSkippedInReactLogic: boolean = false) => {
-    // 'isSkippedInReactLogic' se refiere a si el archivo tenía una opción de "No tengo" en tu React form.
-    // 'ventasMovimientos' no tenía skip en React, así que es obligatorio si no se sube.
     const canBeSkipped = isSkippedInReactLogic;
     if (!isOptional && !fileStatuses.value[key]?.uploaded && (!canBeSkipped || (canBeSkipped && !skippedFiles.value[key]))) {
       allFilesStillValid = false;
@@ -223,41 +247,52 @@ const finalSubmit = handleSubmit(async (formData) => { // formData aquí son los
     }
   };
 
-  // Basado en tu lógica de React `requiredFiles` y `skippedFiles`
-  checkAllFilesForFinalSubmit('menuRestaurante', 'Menú del Restaurante', false, true); // skippable en React
-  checkAllFilesForFinalSubmit('costoPorPlato', 'Costo por Plato', false, true);       // skippable en React
-  checkAllFilesForFinalSubmit('ventasMovimientos', 'Reporte de Movimientos', false, false); // NO skippable en React
-  checkAllFilesForFinalSubmit('ventasProductos', 'Reporte de Ventas por Producto', false, true); // skippable en React
-  checkAllFilesForFinalSubmit('ventasCliente', 'Reporte de Ventas por Cliente', true, true);    // opcional y skippable en React
+  checkAllFilesForFinalSubmit('menuRestaurante', 'Menú del Restaurante', false, true);
+  checkAllFilesForFinalSubmit('costoPorPlato', 'Costo por Plato', false, true);
+  checkAllFilesForFinalSubmit('ventasMovimientos', 'Reporte de Movimientos', false, false);
+  checkAllFilesForFinalSubmit('ventasProductos', 'Reporte de Ventas por Producto', false, true);
+  checkAllFilesForFinalSubmit('ventasCliente', 'Reporte de Ventas por Cliente', true, true);
 
   if (!allFilesStillValid) {
     submissionError.value = `Documentos Faltantes Requeridos:\n${finalFileErrorMessages.join('\n')}`;
     isLoading.value = false;
+    console.log('BusinessData: Envío detenido por archivos faltantes tras validación final.'); // Log adicional
     return;
   }
 
+  // Construcción de dataToSend (tu lógica existente)
   const dataToSend = new FormData();
-  // Llenar FormData con valores del formulario y archivos
-  (Object.keys(formData) as Array<keyof FormValues>).forEach(key => {
-    const value = formData[key];
-    if (key in fileStatuses.value) { // Verifica si es un campo de archivo conocido
+  (Object.keys(formDataValidatedByVeeValidate) as Array<keyof FormValues>).forEach(key => {
+    const value = formDataValidatedByVeeValidate[key];
+    if (key in fileStatuses.value) {
       const fileInfo = fileStatuses.value[key as keyof typeof fileStatuses.value];
       if (fileInfo.uploaded && fileInfo.file) {
         dataToSend.append(key, fileInfo.file);
       }
-      // Si está 'skipped', no se añade. Si es obligatorio y skipped, ya habría fallado la validación anterior.
-    } else if (value !== undefined && value !== null) { // Para otros campos (string, boolean, number)
+    } else if (value !== undefined && value !== null) {
       dataToSend.append(key, String(value));
     }
   });
 
+  // Log del FormData final que se enviaría (para depurar qué se está añadiendo)
+  console.log('BusinessData: FormData final a enviar (contenido aproximado):');
+  for (let [key, value] of dataToSend.entries()) {
+    if (value instanceof File) {
+      console.log(key, { fileName: value.name, type: value.type, size: value.size });
+    } else {
+      console.log(key, value);
+    }
+  }
+
   try {
     if (!businessId.value) throw new Error("Business ID no disponible");
+    // console.log('BusinessData: Intentando enviar al servicio...'); // Puedes descomentar este si quieres más logs
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
-    isFormSubmitted.value = true; // Mostrar mensaje de éxito
+    // console.log('BusinessData: Envío al servicio exitoso.'); // Puedes descomentar este
+    isFormSubmitted.value = true;
   } catch (error: any) {
-    console.error("Error en finalSubmit:", error);
-    submissionError.value = error.message || "Hubo un problema al enviar los datos. Por favor, inténtalo de nuevo.";
+    console.error("BusinessData: Error en finalSubmit durante la llamada al servicio:", error);
+    submissionError.value = error.response?.data?.message || error.message || "Hubo un problema al enviar los datos. Por favor, inténtalo de nuevo.";
   } finally {
     isLoading.value = false;
   }
@@ -285,12 +320,14 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
         </div>
         <form v-else @submit.prevent="finalSubmit" class="wizard-form">
           <div class="business-data-steps-container">
+            <div>currentStep: {{ currentStep }}</div>
             <Transition name="step-transition" mode="out-in">
               <component
                 :is="activeStepComponent"
                 :key="currentStep"
                 v-if="activeStepComponent"
-                :form-values="values" :errors="errors"     :file-statuses="fileStatuses"
+                :values="values"
+                :file-statuses="fileStatuses"
                 :skipped-files="skippedFiles"
                 @update:form-value="handleFormValueUpdateFromChild"
                 @update-file="updateFileStatusFromChild"
