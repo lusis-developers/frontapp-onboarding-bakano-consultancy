@@ -320,7 +320,6 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
         </div>
         <form v-else @submit.prevent="finalSubmit" class="wizard-form">
           <div class="business-data-steps-container">
-            <div>currentStep: {{ currentStep }}</div>
             <Transition name="step-transition" mode="out-in">
               <component
                 :is="activeStepComponent"

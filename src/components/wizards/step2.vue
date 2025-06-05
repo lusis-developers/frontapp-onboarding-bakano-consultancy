@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Field, ErrorMessage } from 'vee-validate';
+import { Field, ErrorMessage, useField } from 'vee-validate';
+import { watch } from 'vue';
 
-defineProps<{ values: Record<string, any> }>();
+const { value: vendePorWhatsapp } = useField('vendePorWhatsapp');
 
 const desafioOptions = [
   { value: "aumentar_clientes", label: "Aumentar el número de clientes" },
@@ -11,6 +12,9 @@ const desafioOptions = [
   { value: "operaciones", label: "Protocolos de operaciones (administrativas, logística, inventario)" },
 ];
 
+watch(vendePorWhatsapp, (val, oldVal) => {
+  console.log('Checkbox "vendePorWhatsapp" cambió:', oldVal, '→', val);
+});
 </script>
 
 <template>
@@ -46,19 +50,27 @@ const desafioOptions = [
     </div>
 
     <div class="form-field form-field-checkbox">
-      <Field name="vendePorWhatsapp" type="checkbox" v-slot="{ field }">
+      <Field
+        name="vendePorWhatsapp"
+        type="checkbox"
+        :value="true"
+        :unchecked-value="false"
+        v-slot="{ field }"
+      >
         <input
           v-bind="field"
           id="vendePorWhatsapp"
           type="checkbox"
           class="form-checkbox"
+          :true-value="true"
+          :false-value="false"
         />
       </Field>
       <label for="vendePorWhatsapp" class="form-label-checkbox">¿Vendes por WhatsApp?</label>
     </div>
     <ErrorMessage name="vendePorWhatsapp" class="error-text" />
 
-    <div v-if="values.vendePorWhatsapp" class="form-field">
+    <div v-if="vendePorWhatsapp" class="form-field">
       <label for="gananciaWhatsapp" class="form-label">¿Cuánto ganas por WhatsApp? (mensual estimado)</label>
       <Field name="gananciaWhatsapp" v-slot="{ field, meta }">
         <input
@@ -121,7 +133,7 @@ const desafioOptions = [
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
   border: 1px solid $BAKANO-LIGHT;
-  border-radius: 8px; // Define 8px: 0.375rem;
+  border-radius: 8px;
   font-size: 1rem;
   color: $BAKANO-DARK;
   background-color: $white;
@@ -147,24 +159,24 @@ const desafioOptions = [
 }
 
 .form-select {
-  appearance: none; // Para poder estilizar la flecha si se desea
+  appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor' class='w-5 h-5'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd' /%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
-  background-size: 1.25em; // Ajusta el tamaño de la flecha
-  padding-right: 2.5rem; // Espacio para la flecha
+  background-size: 1.25em;
+  padding-right: 2.5rem;
 }
 
 .form-field-checkbox {
   flex-direction: row;
   align-items: center;
-  gap: 0.75rem; // Espacio entre checkbox y label
+  gap: 0.75rem;
 }
 
 .form-checkbox {
-  width: 1.25rem; // w-5
-  height: 1.25rem; // h-5
-  border-radius: 8px; // Define 8px: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 8px;
   border: 2px solid rgba($BAKANO-DARK, 0.3);
   cursor: pointer;
   appearance: none;
@@ -176,11 +188,10 @@ const desafioOptions = [
     border-color: $BAKANO-PINK;
 
     &::after {
-      // Estilo para el checkmark
       content: '';
       position: absolute;
-      left: 0.375rem; // Ajusta para centrar
-      top: 0.125rem; // Ajusta para centrar
+      left: 0.375rem;
+      top: 0.125rem;
       width: 0.3rem;
       height: 0.6rem;
       border: solid $white;
@@ -196,15 +207,15 @@ const desafioOptions = [
 }
 
 .form-label-checkbox {
-  margin-bottom: 0; // Anular el margen del label normal
+  margin-bottom: 0;
   cursor: pointer;
-  font-weight: normal; // El label de checkbox no suele ser bold
+  font-weight: normal;
   color: $text-placeholder;
 }
 
 .error-text {
   font-size: 0.8rem;
   color: $BAKANO-PINK;
-  margin-top: 0.1rem; // Pequeño espacio después del campo si hay error
+  margin-top: 0.1rem;
 }
 </style>
