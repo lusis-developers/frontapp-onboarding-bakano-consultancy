@@ -11,7 +11,8 @@ import Step1 from './step1.vue';
 import Step2 from './step2.vue';
 import Step3 from './step3.vue';
 import Step4 from './step4.vue';
-import SubmittedMessage from './submittedMessage.vue'; // Asumiendo esta ruta
+import SubmittedMessage from './submittedMessage.vue';
+import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
 
 // --- 1. Props que BusinessData.vue (el modal/mago) ESPERA de Onboarding.vue ---
 interface BusinessDataOwnProps {
@@ -31,6 +32,7 @@ const totalSteps = 4;
 const isLoading = ref(false);
 const isFormSubmitted = ref(props.isPreSubmitted);
 const submissionError = ref<string>('');
+const showConfirmClose = ref(false)
 
 const route = useRoute(); // Si necesitas businessId
 const businessId = computed(() => route.params.businessId as string || 'SOME_DEFAULT_ID'); // Provee un fallback
@@ -111,11 +113,20 @@ watch(() => props.open, (newVal) => {
 watch(() => props.isPreSubmitted, (newVal) => { if (newVal) isFormSubmitted.value = true; });
 
 // Métodos del diálogo y navegación
-const handleDialogClose = () => {
-  if (!props.isPreSubmitted && !isLoading.value) { // No cerrar si es pre-enviado o está cargando
-    emit('update:open', false);
+const attemptCloseWizard = () => {
+  if (!props.isPreSubmitted && !isLoading.value) showConfirmClose.value = true
+}
+
+const closeWizard = () => emit('update:open', false)
+
+
+/* cuando el usuario confirma desde ConfirmCloseModal, cerramos el wizard */
+const handleConfirmedClose = (val: boolean) => {
+  // ConfirmCloseModal emite update:modelValue=false SOLO si el usuario pulsó «Cerrar».
+  if (!val) {
+    emit('update:open', false)             // cierra BusinessData.vue
   }
-};
+}
 const stepFields: Record<number, (keyof FormValues)[]> = {
   1: ['instagram', 'tiktok', 'empleados'],
   2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'],
@@ -305,13 +316,15 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
 </script>
 
 <template>
-  <div v-if="props.open" class="dialog-overlay" @mousedown.self="handleDialogClose">
+  <div v-if="props.open" class="dialog-overlay" @mousedown.self="attemptCloseWizard">
     <div class="dialog-panel wizard-dialog">
       <header class="dialog-header">
         <h2 class="wizard-title">
           {{ isFormSubmitted ? "¡Agenda tu Reunión!" : "Registro de Información" }}
         </h2>
-        <button @click="handleDialogClose" class="close-button" aria-label="Cerrar diálogo">&times;</button>
+        <button @click="attemptCloseWizard" class="close-button" aria-label="Cerrar diálogo">
+          &times;
+        </button>
       </header>
 
       <main class="dialog-content">
@@ -355,6 +368,9 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
       </main>
     </div>
   </div>
+  <ConfirmCloseModal
+    v-model="showConfirmClose"
+    @confirm="closeWizard" />
 </template>
 
 <style lang="scss" scoped>
