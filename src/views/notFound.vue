@@ -15,8 +15,6 @@
         rel="noopener noreferrer"
       >
         Volver a bakano.ec
-        68389fffcfae680c8afebaa0
-        6838a000cfae680c8afebaa6
         <i class="fa-solid fa-arrow-right"></i>
       </a>
     </div>
