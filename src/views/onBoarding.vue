@@ -28,11 +28,4 @@ import VideoSection from '@/components/gastronomic/videoSection.vue';
 .main-content {
   flex-grow: 1;
 }
-
-// Puedes agregar más estilos específicos para el layout de esta página si es necesario.
-// Por ejemplo, si necesitas espaciado uniforme entre las secciones principales:
-.main-content> :deep(section) {
-  // Si tus componentes raíz son <section>
-  margin-bottom: 3rem; // Ejemplo de espaciado
-}
 </style>
