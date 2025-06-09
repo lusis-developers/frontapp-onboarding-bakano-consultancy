@@ -46,10 +46,8 @@ const isAlreadySubmitted = computed(() => {
       <p>Verificando información...</p>
     </div>
     <main v-else class="main-content">
-      <template v-if="!isAlreadySubmitted">
-        <HeroSection />
-        <VideoSection />
-      </template>
+      <HeroSection />
+      <VideoSection />
       <CallToAction :is-already-submitted="isAlreadySubmitted" />
     </main>
     <Footer />
