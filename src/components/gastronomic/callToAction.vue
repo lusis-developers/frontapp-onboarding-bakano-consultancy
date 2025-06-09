@@ -2,15 +2,20 @@
 import { ref } from 'vue';
 import BusinessData from '@/components/wizards/businessData.vue';
 
-const isRegistrationModalVisible = ref(false);
+// ORDEN RECIBIDA: Acepta la decisión del padre como una prop.
+const props = defineProps<{
+  isAlreadySubmitted: boolean;
+}>();
+
+// El estado inicial del modal depende de la orden del padre.
+const isModalOpen = ref(props.isAlreadySubmitted);
 
 const handleOpenFormClick = () => {
-  console.log('CallToAction: Botón "¡Comenzar Ahora!" clickeado. Abriendo modal BusinessData...');
-  isRegistrationModalVisible.value = true;
+  isModalOpen.value = true;
 };
 
 const handleModalClose = (newOpenState: boolean) => {
-  isRegistrationModalVisible.value = newOpenState;
+  isModalOpen.value = newOpenState;
 };
 </script>
 
@@ -18,30 +23,25 @@ const handleModalClose = (newOpenState: boolean) => {
   <section id="comenzar" class="cta-section">
     <div class="cta-container">
       <div class="cta-card">
-        <h2 class="cta-title">
-          ¿Listo para <span class="cta-title-gradient">Transformar</span> tu Negocio?
-        </h2>
-        <p class="cta-description">
-          Para continuar con el proceso y comenzar a ver resultados en tu negocio gastronómico,
-          haz click en el botón a continuación.
-        </p>
-
-        <div class="cta-actions">
-          <button
-            class="cta-button"
-            @click="handleOpenFormClick"
-          >
-            ¡Comenzar Ahora!
-          </button>
-        </div>
+        <template v-if="!props.isAlreadySubmitted">
+          <h2 class="cta-title">¿Listo para <span class="cta-title-gradient">Transformar</span> tu Negocio?</h2>
+          <p class="cta-description">Para continuar con el proceso, haz click en el botón a continuación.</p>
+          <div class="cta-actions">
+            <button class="cta-button" @click="handleOpenFormClick">¡Comenzar Ahora!</button>
+          </div>
+        </template>
+        <template v-else>
+           <h2 class="cta-title">¡Ya casi está todo listo!</h2>
+           <p class="cta-description">Recibimos tu información correctamente. Por favor, agenda tu reunión para dar el siguiente paso.</p>
+        </template>
       </div>
     </div>
   </section>
 
   <BusinessData
-    :open="isRegistrationModalVisible"
+    :open="isModalOpen"
     @update:open="handleModalClose"
-    :is-pre-submitted="false"
+    :is-pre-submitted="props.isAlreadySubmitted"
   />
 </template>
 
