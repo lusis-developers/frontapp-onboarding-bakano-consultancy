@@ -8,14 +8,14 @@ const Blank = defineComponent({ name: 'Blank', template: '<div />' })
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // {
-    //   path: '/',
-    //   name: 'root-redirect',
-    //   component: Blank,
-    //   beforeEnter() {
-    //     window.location.replace('https://bakano.ec')
-    //   },
-    // },
+    {
+      path: '/',
+      name: 'root-redirect',
+      component: Blank,
+      beforeEnter() {
+        window.location.replace('https://bakano.ec')
+      },
+    },
     {
       path: '/:userId/:businessId',
       name: 'onboarding',
