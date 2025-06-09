@@ -1,62 +1,66 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
-import { Field, ErrorMessage } from 'vee-validate';
+// Paso 1: Añadimos 'computed' a los imports.
+import { computed, defineProps, defineEmits } from 'vue';
 
+// La interfaz FileStatus es útil, la mantenemos.
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
+// Paso 2: Actualizamos las props para recibir 'errors' del padre.
 const props = defineProps<{
   values: Record<string, any>;
+  errors: Record<string, string | undefined>; // <-- Añadimos esto
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
 }>();
 
+// Tus emits ya están perfectos.
 const emit = defineEmits(['update:form-value', 'update-file']);
 
+// Tu lógica para manejar archivos ya es correcta, no necesita cambios.
 const handleFileChange = (fieldName: string, event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
-
 const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
+
+// Paso 3: Creamos la propiedad computada para 'objetivoIdeal'.
+const objetivoIdeal = computed({
+  get: () => props.values.objetivoIdeal,
+  set: (val) => emit('update:form-value', 'objetivoIdeal', val),
+});
 </script>
 
 <template>
   <div class="form-step">
     <div class="form-field">
       <label for="objetivoIdeal" class="form-label">Objetivo ideal a lograr*</label>
-      <Field name="objetivoIdeal" v-slot="{ field, meta }">
-        <textarea
-          v-bind="field"
-          id="objetivoIdeal"
-          placeholder="Describe tu objetivo"
-          class="form-textarea"
-          :class="{ 'input-error': !meta.valid && meta.touched }"
-          rows="4"
-        ></textarea>
-      </Field>
-      <ErrorMessage name="objetivoIdeal" class="error-text" />
+      <textarea
+        v-model="objetivoIdeal"
+        id="objetivoIdeal"
+        placeholder="Describe tu objetivo"
+        class="form-textarea"
+        :class="{ 'input-error': !!props.errors.objetivoIdeal }"
+        rows="4"
+      ></textarea>
+      <span v-if="props.errors.objetivoIdeal" class="error-text">{{ props.errors.objetivoIdeal }}</span>
     </div>
 
     <div class="form-group-title">Documentos Financieros*</div>
 
-    <!-- Menú del Restaurante -->
     <div class="form-field file-field">
-      <label for="menuRestaurante" class="form-label-file">Menú del Restaurante (PDF)</label>
+      <label for="menuRestauranteFile" class="form-label-file">Menú del Restaurante (PDF)</label>
       <p class="file-description">Sube tu menú actual en formato PDF</p>
       <div class="file-input-area">
-        <Field name="menuRestaurante" v-slot="{ field, meta }">
-          <input
-            type="file"
-            id="menuRestauranteFile"
-            accept=".pdf"
-            @change="event => handleFileChange('menuRestaurante', event)"
-            class="form-input-file"
-            :disabled="props.skippedFiles.menuRestaurante"
-            :class="{ 'input-error': !meta.valid && meta.touched && !props.skippedFiles.menuRestaurante }"
-          />
-        </Field>
+        <input
+          type="file"
+          id="menuRestauranteFile"
+          accept=".pdf"
+          @change="event => handleFileChange('menuRestaurante', event)"
+          class="form-input-file"
+          :disabled="props.skippedFiles.menuRestaurante"
+        />
         <div v-if="props.fileStatuses.menuRestaurante?.uploaded && !props.skippedFiles.menuRestaurante" class="file-status-chip">
           {{ props.fileStatuses.menuRestaurante.name }} <span class="checkmark">✓</span>
         </div>
@@ -71,25 +75,23 @@ const handleSkipChange = (fieldName: string, event: Event) => {
         />
         <label :for="'skip_menuRestaurante'" class="form-label-checkbox">No tengo este archivo</label>
       </div>
-      <ErrorMessage name="menuRestaurante" v-if="!props.skippedFiles.menuRestaurante" class="error-text" />
+      <span v-if="props.errors.menuRestaurante && !props.skippedFiles.menuRestaurante" class="error-text">
+        {{ props.errors.menuRestaurante }}
+      </span>
     </div>
 
-    <!-- Costo por Plato -->
     <div class="form-field file-field">
-      <label for="costoPorPlato" class="form-label-file">Costo por Plato (PDF o Excel)</label>
+      <label for="costoPorPlatoFile" class="form-label-file">Costo por Plato (PDF o Excel)</label>
       <p class="file-description">Documento detallando el costo de producción de cada plato</p>
       <div class="file-input-area">
-        <Field name="costoPorPlato" v-slot="{ field, meta }">
-          <input
-            type="file"
-            id="costoPorPlatoFile"
-            accept=".pdf,.xlsx,.xls"
-            @change="event => handleFileChange('costoPorPlato', event)"
-            class="form-input-file"
-            :disabled="props.skippedFiles.costoPorPlato"
-            :class="{ 'input-error': !meta.valid && meta.touched && !props.skippedFiles.costoPorPlato }"
-          />
-        </Field>
+        <input
+          type="file"
+          id="costoPorPlatoFile"
+          accept=".pdf,.xlsx,.xls"
+          @change="event => handleFileChange('costoPorPlato', event)"
+          class="form-input-file"
+          :disabled="props.skippedFiles.costoPorPlato"
+        />
         <div v-if="props.fileStatuses.costoPorPlato?.uploaded && !props.skippedFiles.costoPorPlato" class="file-status-chip">
           {{ props.fileStatuses.costoPorPlato.name }} <span class="checkmark">✓</span>
         </div>
@@ -104,7 +106,9 @@ const handleSkipChange = (fieldName: string, event: Event) => {
         />
         <label :for="'skip_costoPorPlato'" class="form-label-checkbox">No tengo este archivo</label>
       </div>
-      <ErrorMessage name="costoPorPlato" v-if="!props.skippedFiles.costoPorPlato" class="error-text" />
+      <span v-if="props.errors.costoPorPlato && !props.skippedFiles.costoPorPlato" class="error-text">
+        {{ props.errors.costoPorPlato }}
+      </span>
     </div>
   </div>
 </template>

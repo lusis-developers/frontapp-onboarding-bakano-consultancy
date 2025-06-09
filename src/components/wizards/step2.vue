@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { Field, ErrorMessage, useField } from 'vee-validate';
-import { watch } from 'vue';
+// Paso 1: Cambiamos los imports. Adiós a Field, ErrorMessage, useField y watch.
+import { computed, defineProps, defineEmits } from 'vue';
 
-const { value: vendePorWhatsapp } = useField('vendePorWhatsapp');
+// Paso 2: Definimos las props que vienen del padre.
+const props = defineProps<{
+  values: Record<string, any>;
+  errors: Record<string, string | undefined>;
+}>();
 
+// Paso 3: Definimos el evento para comunicarnos con el padre.
+const emit = defineEmits(['update:form-value']);
+
+// Mantenemos las opciones estáticas para el <select>.
 const desafioOptions = [
   { value: "aumentar_clientes", label: "Aumentar el número de clientes" },
   { value: "aumentar_ingreso", label: "Aumentar el ingreso por Punto de venta" },
@@ -12,95 +20,101 @@ const desafioOptions = [
   { value: "operaciones", label: "Protocolos de operaciones (administrativas, logística, inventario)" },
 ];
 
-watch(vendePorWhatsapp, (val, oldVal) => {
-  console.log('Checkbox "vendePorWhatsapp" cambió:', oldVal, '→', val);
+// Paso 4: Creamos las propiedades computadas para CADA campo del formulario.
+// Esta es la clave para la reactividad bidireccional.
+const ingresoMensual = computed({
+  get: () => props.values.ingresoMensual,
+  set: (val) => emit('update:form-value', 'ingresoMensual', val),
 });
+
+const ingresoAnual = computed({
+  get: () => props.values.ingresoAnual,
+  set: (val) => emit('update:form-value', 'ingresoAnual', val),
+});
+
+const vendePorWhatsapp = computed<boolean>({
+  get: () => !!props.values.vendePorWhatsapp,
+  set: (val) => emit('update:form-value', 'vendePorWhatsapp', val),
+});
+
+const gananciaWhatsapp = computed({
+  get: () => props.values.gananciaWhatsapp,
+  set: (val) => emit('update:form-value', 'gananciaWhatsapp', val),
+});
+
+const desafioPrincipal = computed({
+  get: () => props.values.desafioPrincipal,
+  set: (val) => emit('update:form-value', 'desafioPrincipal', val),
+});
+
 </script>
 
 <template>
   <div class="form-step">
     <div class="form-field">
       <label for="ingresoMensual" class="form-label">Ingreso mensual promedio*</label>
-      <Field name="ingresoMensual" v-slot="{ field, meta }">
-        <input
-          v-bind="field"
-          id="ingresoMensual"
-          type="number"
-          placeholder="$"
-          class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched }"
-        />
-      </Field>
-      <ErrorMessage name="ingresoMensual" class="error-text" />
+      <input
+        v-model="ingresoMensual"
+        id="ingresoMensual"
+        type="number"
+        placeholder="$"
+        class="form-input"
+        :class="{ 'input-error': !!props.errors.ingresoMensual }"
+      />
+      <span v-if="props.errors.ingresoMensual" class="error-text">{{ props.errors.ingresoMensual }}</span>
     </div>
 
     <div class="form-field">
       <label for="ingresoAnual" class="form-label">Ingreso anual*</label>
-      <Field name="ingresoAnual" v-slot="{ field, meta }">
-        <input
-          v-bind="field"
-          id="ingresoAnual"
-          type="number"
-          placeholder="$"
-          class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched }"
-        />
-      </Field>
-      <ErrorMessage name="ingresoAnual" class="error-text" />
+      <input
+        v-model="ingresoAnual"
+        id="ingresoAnual"
+        type="number"
+        placeholder="$"
+        class="form-input"
+        :class="{ 'input-error': !!props.errors.ingresoAnual }"
+      />
+      <span v-if="props.errors.ingresoAnual" class="error-text">{{ props.errors.ingresoAnual }}</span>
     </div>
 
     <div class="form-field form-field-checkbox">
-      <Field
-        name="vendePorWhatsapp"
+      <input
+        v-model="vendePorWhatsapp"
+        id="vendePorWhatsapp"
         type="checkbox"
-        :value="true"
-        :unchecked-value="false"
-        v-slot="{ field }"
-      >
-        <input
-          v-bind="field"
-          id="vendePorWhatsapp"
-          type="checkbox"
-          class="form-checkbox"
-          :true-value="true"
-          :false-value="false"
-        />
-      </Field>
+        class="form-checkbox"
+      />
       <label for="vendePorWhatsapp" class="form-label-checkbox">¿Vendes por WhatsApp?</label>
     </div>
-    <ErrorMessage name="vendePorWhatsapp" class="error-text" />
+    <span v-if="props.errors.vendePorWhatsapp" class="error-text">{{ props.errors.vendePorWhatsapp }}</span>
 
     <div v-if="vendePorWhatsapp" class="form-field">
       <label for="gananciaWhatsapp" class="form-label">¿Cuánto ganas por WhatsApp? (mensual estimado)</label>
-      <Field name="gananciaWhatsapp" v-slot="{ field, meta }">
-        <input
-          v-bind="field"
-          id="gananciaWhatsapp"
-          type="text"
-          placeholder="$"
-          class="form-input"
-          :class="{ 'input-error': !meta.valid && meta.touched }"
-        />
-      </Field>
-      <ErrorMessage name="gananciaWhatsapp" class="error-text" />
+      <input
+        v-model="gananciaWhatsapp"
+        id="gananciaWhatsapp"
+        type="text"
+        placeholder="$"
+        class="form-input"
+        :class="{ 'input-error': !!props.errors.gananciaWhatsapp }"
+      />
+      <span v-if="props.errors.gananciaWhatsapp" class="error-text">{{ props.errors.gananciaWhatsapp }}</span>
     </div>
 
     <div class="form-field">
       <label for="desafioPrincipal" class="form-label">Desafío principal*</label>
-      <Field name="desafioPrincipal" v-slot="{ field, meta }">
-        <select
-          v-bind="field"
-          id="desafioPrincipal"
-          class="form-select"
-          :class="{ 'input-error': !meta.valid && meta.touched }"
-        >
-          <option value="" disabled>Selecciona un desafío</option>
-          <option v-for="option in desafioOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </Field>
-      <ErrorMessage name="desafioPrincipal" class="error-text" />
+      <select
+        v-model="desafioPrincipal"
+        id="desafioPrincipal"
+        class="form-select"
+        :class="{ 'input-error': !!props.errors.desafioPrincipal }"
+      >
+        <option value="" disabled>Selecciona un desafío</option>
+        <option v-for="option in desafioOptions" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+      <span v-if="props.errors.desafioPrincipal" class="error-text">{{ props.errors.desafioPrincipal }}</span>
     </div>
   </div>
 </template>

@@ -3,12 +3,15 @@ import { defineProps, defineEmits } from 'vue';
 
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
+// Paso 1: Actualizamos las props para recibir 'errors'.
 const props = defineProps<{
   values: Record<string, any>;
+  errors: Record<string, string | undefined>; // <-- Añadimos esto
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
 }>();
 
+// Tus emits y funciones para manejar los archivos ya son perfectos. No se tocan.
 const emit = defineEmits(['update-file']);
 
 const handleFileChange = (fieldName: string, event: Event) => {
@@ -65,7 +68,8 @@ const fileFields = [
           @change="event => handleFileChange(fField.name, event)"
           class="form-input-file"
           :disabled="props.skippedFiles[fField.name]"
-          :class="{ 'input-error': !props.skippedFiles[fField.name] && !props.fileStatuses[fField.name]?.uploaded && props.values[fField.name] === undefined }"
+          
+          :class="{ 'input-error': !!props.errors[fField.name] && !props.skippedFiles[fField.name] }"
         />
         <div
           v-if="props.fileStatuses[fField.name]?.uploaded && !props.skippedFiles[fField.name]"
@@ -86,8 +90,10 @@ const fileFields = [
           >No tengo este archivo</label
         >
       </div>
-      <!-- Error message for VeeValidate -->
-      <ErrorMessage :name="fField.name" v-if="!props.skippedFiles[fField.name]" class="error-text" />
+      
+      <span v-if="props.errors[fField.name] && !props.skippedFiles[fField.name]" class="error-text">
+        {{ props.errors[fField.name] }}
+      </span>
     </div>
   </div>
 </template>

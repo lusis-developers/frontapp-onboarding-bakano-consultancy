@@ -167,6 +167,7 @@ const validateStepFiles = (stepToCheck: number): { valid: boolean; message?: str
     // permitir el intento de submit (aunque 'nextStep' no aplica aquí), los pondrías.
     // Según tu React, 'ventasMovimientos' y 'ventasProductos' son requeridos en el onSubmit final si no se omiten.
     // 'ventasCliente' es opcional.
+
   }
   // Esta función 'validateStepFiles' se usa principalmente para la lógica de 'nextStep'.
   // La validación exhaustiva de todos los archivos se hará en 'finalSubmit'.
@@ -340,6 +341,7 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
                 v-if="activeStepComponent"
                 :values="values"
                 :file-statuses="fileStatuses"
+                :errors="errors" 
                 :skipped-files="skippedFiles"
                 @update:form-value="handleFormValueUpdateFromChild"
                 @update-file="updateFileStatusFromChild"
