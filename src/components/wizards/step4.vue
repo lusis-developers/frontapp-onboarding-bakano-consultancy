@@ -9,14 +9,19 @@ const props = defineProps<{
   errors: Record<string, string | undefined>; // <-- Añadimos esto
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
+  acceptsPolicies: boolean;
 }>();
 
 // Tus emits y funciones para manejar los archivos ya son perfectos. No se tocan.
-const emit = defineEmits(['update-file']);
+const emit = defineEmits(['update-file', 'update:form-value']);
 
 const handleFileChange = (fieldName: string, event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
+};
+
+const handlePolicyChange = (event: Event) => {
+  emit('update:form-value', 'acceptsPolicies', (event.target as HTMLInputElement).checked);
 };
 
 const handleSkipChange = (fieldName: string, event: Event) => {
@@ -93,6 +98,32 @@ const fileFields = [
       
       <span v-if="props.errors[fField.name] && !props.skippedFiles[fField.name]" class="error-text">
         {{ props.errors[fField.name] }}
+      </span>
+    </div>
+    <div class="form-field policy-acceptance-field">
+      <div class="policy-input-group">
+        <input
+          type="checkbox"
+          id="acceptsPolicies"
+          class="form-checkbox"
+          :checked="props.acceptsPolicies"
+          @change="handlePolicyChange"
+          :class="{ 'input-error': !!props.errors.acceptsPolicies }"
+        />
+        <label for="acceptsPolicies" class="form-label-checkbox policy-label">
+          He leído y acepto las
+          <a
+            href="https://mkt.bakano.ec/politicas"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="policy-link"
+            @click.stop >
+            políticas de seguridad
+          </a>.
+        </label>
+      </div>
+      <span v-if="props.errors.acceptsPolicies" class="error-text">
+        {{ props.errors.acceptsPolicies }}
       </span>
     </div>
   </div>
@@ -258,5 +289,37 @@ const fileFields = [
   font-size: 0.8rem;
   color: $BAKANO-PINK;
   margin-top: 0.1rem;
+}
+
+.policy-acceptance-field {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $BAKANO-LIGHT;
+}
+
+.policy-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.policy-label {
+  color: $BAKANO-DARK; // Usar un color más oscuro para legibilidad
+  font-weight: 500;
+}
+
+.policy-link {
+  color: $BAKANO-PURPLE;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: darken($BAKANO-PURPLE, 10%);
+  }
+}
+
+.form-checkbox.input-error+.form-label-checkbox {
+  color: $BAKANO-PINK;
 }
 </style>

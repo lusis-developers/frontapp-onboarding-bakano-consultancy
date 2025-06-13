@@ -67,6 +67,9 @@ const registrationFormSchema = z.object({
   ventasMovimientos: fileSchema,
   ventasProductos: fileSchema,
   ventasCliente: optionalFileSchema,
+  acceptsPolicies: z.boolean().refine(val => val === true, {
+    message: "Debes aceptar las políticas para continuar.",
+  }),
 }).refine(
   data =>
     !data.vendePorWhatsapp ||
@@ -83,6 +86,7 @@ const { handleSubmit, values, errors, setFieldValue, validateField, meta, resetF
   initialValues: {
     instagram: '', tiktok: '', empleados: '', ingresoMensual: '', ingresoAnual: '',
     vendePorWhatsapp: false, gananciaWhatsapp: '', desafioPrincipal: '', objetivoIdeal: '',
+    acceptsPolicies: false,
   },
 });
 
