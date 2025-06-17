@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import BusinessData from '@/components/wizards/businessData.vue';
+import BusinessData from '@/components/wizards/getBusinessData/index.vue';
 
 // ORDEN RECIBIDA: Acepta la decisión del padre como una prop.
 const props = defineProps<{

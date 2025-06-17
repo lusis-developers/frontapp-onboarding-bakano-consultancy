@@ -7,11 +7,11 @@ import * as z from 'zod';
 import { consultancyService } from '@/services/consultancyService'; // Ajusta la ruta
 
 // Componentes de Paso (los que ya tienes)
-import Step1 from './step1.vue';
-import Step2 from './step2.vue';
-import Step3 from './step3.vue';
-import Step4 from './step4.vue';
-import SubmittedMessage from './submittedMessage.vue';
+import Step1 from '../getBusinessData/step1.vue';
+import Step2 from '../getBusinessData/step2.vue';
+import Step3 from '../getBusinessData/step3.vue';
+import Step4 from '../getBusinessData/step4.vue';
+import SubmittedMessage from '../getBusinessData/submittedMessage.vue';
 import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
 
 // --- 1. Props que BusinessData.vue (el modal/mago) ESPERA de Onboarding.vue ---
