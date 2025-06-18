@@ -11,8 +11,8 @@ import Step1 from '../getBusinessData/step1.vue';
 import Step2 from '../getBusinessData/step2.vue';
 import Step3 from '../getBusinessData/step3.vue';
 import Step4 from '../getBusinessData/step4.vue';
-import SubmittedMessage from '../getBusinessData/submittedMessage.vue';
 import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
+import OnboardingNextStep from '@/components/onBoardingNextStep.vue';
 
 // --- 1. Props que BusinessData.vue (el modal/mago) ESPERA de Onboarding.vue ---
 interface BusinessDataOwnProps {
@@ -36,6 +36,7 @@ const showConfirmClose = ref(false)
 
 const route = useRoute(); // Si necesitas businessId
 const businessId = computed(() => route.params.businessId as string || 'SOME_DEFAULT_ID'); // Provee un fallback
+const clientIdFromUrl = route.params.userId as string;
 
 // Zod Schema (el mismo que definimos antes)
 const fileSchema = z.instanceof(File).optional();
@@ -334,7 +335,7 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
 
       <main class="dialog-content">
         <div v-if="isFormSubmitted" class="submitted-content-wrapper">
-          <SubmittedMessage :is-pre-submitted="props.isPreSubmitted" />
+          <OnboardingNextStep v-if="clientIdFromUrl" :client-id="clientIdFromUrl" />
         </div>
         <form v-else @submit.prevent="finalSubmit" class="wizard-form">
           <div class="business-data-steps-container">

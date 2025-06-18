@@ -9,6 +9,7 @@ import VideoSection from '@/components/gastronomic/videoSection.vue';
 // 1. Importa tu componente de "Página no encontrada"
 import NotFound from '@/views/notFound.vue';
 import { clientService } from '@/services/clientService.service';
+import Footer from '@/components/global/Footer.vue';
 
 const props = defineProps<{
   userId: string;
@@ -69,7 +70,6 @@ const isAlreadySubmitted = computed(() => {
       <VideoSection />
       <CallToAction :is-already-submitted="isAlreadySubmitted" />
     </main>
-    <Footer v-if="!isLoading" />
   </div>
 </template>
 
