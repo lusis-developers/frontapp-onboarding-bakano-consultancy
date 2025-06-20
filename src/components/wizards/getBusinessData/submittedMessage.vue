@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
+// --- AÑADIDO ---
+// Importamos la URL desde nuestro archivo de constantes
+import { DOCUMENTATION_URL } from '@/constants/links.contant';
 
 interface Props {
   isPreSubmitted?: boolean;
@@ -25,9 +28,18 @@ const props = withDefaults(defineProps<Props>(), {
         <h3 class="step-title">Revisa la Documentación Enviada</h3>
       </div>
       <p class="step-description">
-        En los próximos minutos, **recibirás un email con la documentación y guías necesarias** para la configuración inicial de tu portafolio. Por favor, revísala con atención para preparar todo antes de tu sesión.
+        En los próximos minutos, **recibirás un email con la documentación y guías necesarias**. Para no esperar, puedes acceder directamente y preparar todo antes de tu sesión.
       </p>
-    </div>
+      
+      <a
+        :href="DOCUMENTATION_URL"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="action-button secondary"
+      >
+        Ver Documentación de Preparación
+      </a>
+      </div>
 
     <div class="booking-step">
       <div class="step-header">
@@ -50,10 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
 </template>
 
 <style lang="scss" scoped>
-@use '@/styles/index.scss' as *; // Asegúrate de que esta ruta sea correcta
-
-// --- LOS ESTILOS SON LOS MISMOS QUE LA VERSIÓN ANTERIOR ---
-// No es necesario cambiarlos, la estructura se mantiene.
+@use '@/styles/index.scss' as *;
 
 $text-gray-600: #4A5568;
 $text-gray-800: #1A202C;
@@ -102,11 +111,6 @@ $border-color: #E2E8F0;
   align-items: center;
   gap: 1rem;
 }
-
-.preparation-step {
-  gap: 0.5rem;
-}
-
 
 .step-header {
   display: flex;
@@ -164,6 +168,19 @@ $border-color: #E2E8F0;
       background-color: darken($BAKANO-PINK, 7%);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba($BAKANO-PINK, 0.2);
+    }
+  }
+
+  // --- ESTILO AÑADIDO ---
+  &.secondary {
+    background-color: transparent;
+    color: $BAKANO-PINK;
+    border-color: $BAKANO-PINK;
+
+    &:hover {
+      background-color: rgba($BAKANO-PINK, 0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($BAKANO-PINK, 0.1);
     }
   }
 

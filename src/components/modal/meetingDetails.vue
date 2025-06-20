@@ -2,7 +2,7 @@
 import { computed, defineProps } from 'vue';
 import type { IMeetingDetails } from '@/types/responses/IMeetingStatusResponse';
 import { MeetingStatus, MeetingType } from '@/anums/meetingStatus.enum';
-// Importamos los enums para usarlos en nuestra lógica
+import { DOCUMENTATION_URL } from '@/constants/links.contant';
 
 const props = defineProps<{
   meeting: IMeetingDetails;
@@ -92,6 +92,14 @@ const formattedTime = computed(() => {
         <p><strong>Estado:</strong> <span class="highlight">Listo para agendar</span></p>
     </div>
 
+    <div class="documentation-reminder">
+      <p>
+        Prepárate para la sesión: 
+        <a :href="DOCUMENTATION_URL" target="_blank" rel="noopener noreferrer">
+          Revisar la documentación
+        </a>
+      </p>
+    </div>
     <a
       :href="ctaButton.link"
       target="_blank"
@@ -104,7 +112,6 @@ const formattedTime = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-/* Tu bloque de <style> completo va aquí. No necesita cambios. */
 @use '@/styles/index.scss' as *;
 
 .meeting-details-card {
@@ -186,6 +193,25 @@ const formattedTime = computed(() => {
   &:active {
     transform: translateY(0);
     box-shadow: none;
+  }
+}
+
+/* === ESTILOS MOVIDOS A LA POSICIÓN CORRECTA === */
+.documentation-reminder {
+  font-family: $font-secondary;
+  font-size: 0.9rem;
+  color: #4A5568; // $text-gray-600
+  margin-top: 1rem;
+
+  // No es necesario anidar la 'p' si es el único contenido
+  a {
+    color: $BAKANO-PINK;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 </style>
