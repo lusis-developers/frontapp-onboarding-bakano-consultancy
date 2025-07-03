@@ -12,8 +12,37 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:form-value', 'update-file']);
 
+// --- INICIO DE LA LÓGICA DE VALIDACIÓN MEJORADA ---
 const handleFileChange = (fieldName: string, event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0] || null;
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0] || null;
+
+  if (file) {
+    const OPTIMAL_SIZE_MB = 20;
+    const MAX_SIZE_MB = 70;
+    const OPTIMAL_SIZE_BYTES = OPTIMAL_SIZE_MB * 1024 * 1024;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+    if (file.size > MAX_SIZE_BYTES) {
+      alert(
+        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es demasiado grande.\n\n` +
+        `El tamaño máximo absoluto permitido es de ${MAX_SIZE_MB}MB. Por favor, comprime el archivo o elige uno más pequeño.`
+      );
+      target.value = '';
+      return;
+    }
+    if (file.size > OPTIMAL_SIZE_BYTES) {
+      const isConfirmed = confirm(
+        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es más grande de lo óptimo.\n\n` +
+        `La subida podría demorar. Por favor, no cierres esta página hasta que se complete.\n\n` +
+        `¿Deseas continuar con la subida?`
+      );
+      if (!isConfirmed) {
+        target.value = '';
+        return;
+      }
+    }
+  }
+
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
 const handleSkipChange = (fieldName: string, event: Event) => {
@@ -29,7 +58,10 @@ const objetivoIdeal = computed({
 <template>
   <div class="form-step">
     <div class="form-field">
-      <label for="objetivoIdeal" class="form-label">Objetivo ideal a lograr*</label>
+      <div class="form-label-wrapper">
+        <label for="objetivoIdeal" class="form-label">Objetivo ideal a lograr*</label>
+        <TooltipIcon text="Describe en detalle la meta principal que quieres alcanzar con nuestra ayuda." />
+      </div>
       <textarea
         v-model="objetivoIdeal"
         id="objetivoIdeal"
@@ -49,6 +81,7 @@ const objetivoIdeal = computed({
         <TooltipIcon text="Necesitamos tu menú para analizar precios, variedad y estructura de la oferta." />
       </div>
       <p class="file-description">Sube tu menú actual en formato PDF</p>
+      <p class="file-note">Tamaño óptimo: 20MB (máx. 70MB).</p>
       <div class="file-input-area">
         <input
           type="file"
@@ -83,6 +116,7 @@ const objetivoIdeal = computed({
         <TooltipIcon text="El costeo de platos es clave para entender tu rentabilidad actual." />
       </div>
       <p class="file-description">Documento detallando el costo de producción de cada plato</p>
+      <p class="file-note">Tamaño óptimo: 20MB (máx. 70MB).</p>
       <div class="file-input-area">
         <input
           type="file"
@@ -116,14 +150,20 @@ const objetivoIdeal = computed({
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
 
-// 3. Añade este nuevo estilo para alinear la etiqueta y el icono
 .form-label-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-// El resto de tus estilos permanecen exactamente iguales.
+.file-note {
+  font-size: 0.85rem;
+  color: $BAKANO-PURPLE;
+  font-weight: 500;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .form-step {
   display: flex;
   flex-direction: column;

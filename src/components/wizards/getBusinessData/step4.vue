@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
-// 1. Importar el componente de tooltip
 import TooltipIcon from '@/components/shared/TooltipIcon.vue';
 
 interface FileStatus { name: string; uploaded: boolean; file?: File }
@@ -15,9 +14,39 @@ const props = defineProps<{
 
 const emit = defineEmits(['update-file', 'update:form-value']);
 
-// La lógica para manejar los eventos no necesita cambios.
+// --- INICIO DE LA LÓGICA DE VALIDACIÓN MEJORADA ---
 const handleFileChange = (fieldName: string, event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0] || null;
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0] || null;
+
+  if (file) {
+    const OPTIMAL_SIZE_MB = 20;
+    const MAX_SIZE_MB = 70;
+    const OPTIMAL_SIZE_BYTES = OPTIMAL_SIZE_MB * 1024 * 1024;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+    if (file.size > MAX_SIZE_BYTES) {
+      alert(
+        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es demasiado grande.\n\n` +
+        `El tamaño máximo absoluto permitido es de ${MAX_SIZE_MB}MB. Por favor, comprime el archivo o elige uno más pequeño.`
+      );
+      target.value = '';
+      return;
+    }
+    if (file.size > OPTIMAL_SIZE_BYTES) {
+      const isConfirmed = confirm(
+        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es más grande de lo óptimo.\n\n` +
+        `La subida podría demorar. Por favor, no cierres esta página hasta que se complete.\n\n` +
+        `¿Deseas continuar con la subida?`
+      );
+
+      if (!isConfirmed) {
+        target.value = '';
+        return;
+      }
+    }
+  }
+
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
 const handlePolicyChange = (event: Event) => {
@@ -27,12 +56,12 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
-// 2. Añadimos la propiedad 'tooltipText' a cada objeto de campo.
 const fileFields = [
   {
     name: 'ventasMovimientos',
     label: 'Reporte de Movimientos (Excel)',
     description: 'Registro de transacciones del restaurante (Ej: Reporte de Datafast, Kushki).',
+    note: 'Idealmente de los últimos 12 meses (máximo 18 meses).',
     accept: '.xlsx,.xls',
     skippable: false,
     tooltipText: 'Este es el reporte más importante. Contiene el detalle de cada transacción que procesas.',
@@ -41,6 +70,7 @@ const fileFields = [
     name: 'ventasProductos',
     label: 'Reporte de Ventas por Producto (Excel)',
     description: 'Detalle de ventas desglosado por cada producto (PMIX).',
+    note: 'Tamaño óptimo: 20MB (máx. 70MB).',
     accept: '.xlsx,.xls',
     skippable: true,
     tooltipText: 'Nos ayuda a entender qué productos son tus estrellas y cuáles no, para optimizar tu menú.',
@@ -49,6 +79,7 @@ const fileFields = [
     name: 'ventasCliente',
     label: 'Reporte de Ventas por Cliente (Excel)',
     description: 'Análisis de ventas categorizado por cliente.',
+    note: 'Tamaño óptimo: 20MB (máx. 70MB).',
     accept: '.xlsx,.xls',
     skippable: true,
     tooltipText: 'Si lo tienes, este reporte es oro. Permite identificar a tus clientes más leales y su frecuencia.',
@@ -72,6 +103,7 @@ const fileFields = [
       </div>
 
       <p class="file-description">{{ fField.description }}</p>
+      <p v-if="fField.note" class="file-note">{{ fField.note }}</p>
       <div class="file-input-area">
         <input
           type="file"
@@ -139,11 +171,18 @@ const fileFields = [
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
 
-// 5. Añadimos el estilo para alinear la etiqueta y el icono.
 .form-label-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.file-note {
+  font-size: 0.85rem;
+  color: $BAKANO-PURPLE;
+  font-weight: 500;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-step {
@@ -158,7 +197,6 @@ const fileFields = [
   gap: 0.5rem;
 }
 
-/* El resto de tus estilos permanecen exactamente iguales */
 .form-label-file,
 .form-group-title {
   font-family: $font-secondary;
