@@ -1,22 +1,17 @@
 <script setup lang="ts">
-// Paso 1: Añadimos 'computed' a los imports.
-import { computed, defineProps, defineEmits } from 'vue';
-
-// La interfaz FileStatus es útil, la mantenemos.
+import { computed } from 'vue';
+import TooltipIcon from '@/components/shared/TooltipIcon.vue';
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
-// Paso 2: Actualizamos las props para recibir 'errors' del padre.
 const props = defineProps<{
   values: Record<string, any>;
-  errors: Record<string, string | undefined>; // <-- Añadimos esto
+  errors: Record<string, string | undefined>;
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
 }>();
 
-// Tus emits ya están perfectos.
 const emit = defineEmits(['update:form-value', 'update-file']);
 
-// Tu lógica para manejar archivos ya es correcta, no necesita cambios.
 const handleFileChange = (fieldName: string, event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
@@ -25,7 +20,6 @@ const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
-// Paso 3: Creamos la propiedad computada para 'objetivoIdeal'.
 const objetivoIdeal = computed({
   get: () => props.values.objetivoIdeal,
   set: (val) => emit('update:form-value', 'objetivoIdeal', val),
@@ -39,7 +33,7 @@ const objetivoIdeal = computed({
       <textarea
         v-model="objetivoIdeal"
         id="objetivoIdeal"
-        placeholder="Describe tu objetivo"
+        placeholder="Ej: Aumentar la rentabilidad de mi menú un 20% en 6 meses."
         class="form-textarea"
         :class="{ 'input-error': !!props.errors.objetivoIdeal }"
         rows="4"
@@ -50,7 +44,10 @@ const objetivoIdeal = computed({
     <div class="form-group-title">Documentos Financieros*</div>
 
     <div class="form-field file-field">
-      <label for="menuRestauranteFile" class="form-label-file">Menú del Restaurante (PDF)</label>
+      <div class="form-label-wrapper">
+        <label for="menuRestauranteFile" class="form-label-file">Menú del Restaurante (PDF)</label>
+        <TooltipIcon text="Necesitamos tu menú para analizar precios, variedad y estructura de la oferta." />
+      </div>
       <p class="file-description">Sube tu menú actual en formato PDF</p>
       <div class="file-input-area">
         <input
@@ -81,7 +78,10 @@ const objetivoIdeal = computed({
     </div>
 
     <div class="form-field file-field">
-      <label for="costoPorPlatoFile" class="form-label-file">Costo por Plato (PDF o Excel)</label>
+      <div class="form-label-wrapper">
+        <label for="costoPorPlatoFile" class="form-label-file">Costo por Plato (PDF o Excel)</label>
+        <TooltipIcon text="El costeo de platos es clave para entender tu rentabilidad actual." />
+      </div>
       <p class="file-description">Documento detallando el costo de producción de cada plato</p>
       <div class="file-input-area">
         <input
@@ -116,6 +116,14 @@ const objetivoIdeal = computed({
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
 
+// 3. Añade este nuevo estilo para alinear la etiqueta y el icono
+.form-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// El resto de tus estilos permanecen exactamente iguales.
 .form-step {
   display: flex;
   flex-direction: column;

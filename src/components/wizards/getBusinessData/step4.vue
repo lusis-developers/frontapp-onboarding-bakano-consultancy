@@ -1,54 +1,57 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
+// 1. Importar el componente de tooltip
+import TooltipIcon from '@/components/shared/TooltipIcon.vue';
 
 interface FileStatus { name: string; uploaded: boolean; file?: File }
 
-// Paso 1: Actualizamos las props para recibir 'errors'.
 const props = defineProps<{
   values: Record<string, any>;
-  errors: Record<string, string | undefined>; // <-- Añadimos esto
+  errors: Record<string, string | undefined>;
   fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
   acceptsPolicies: boolean;
 }>();
 
-// Tus emits y funciones para manejar los archivos ya son perfectos. No se tocan.
 const emit = defineEmits(['update-file', 'update:form-value']);
 
+// La lógica para manejar los eventos no necesita cambios.
 const handleFileChange = (fieldName: string, event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0] || null;
   emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
 };
-
 const handlePolicyChange = (event: Event) => {
   emit('update:form-value', 'acceptsPolicies', (event.target as HTMLInputElement).checked);
 };
-
 const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
+// 2. Añadimos la propiedad 'tooltipText' a cada objeto de campo.
 const fileFields = [
   {
     name: 'ventasMovimientos',
     label: 'Reporte de Movimientos (Excel)',
-    description: 'Registro de movimientos y transacciones del restaurante',
+    description: 'Registro de transacciones del restaurante (Ej: Reporte de Datafast, Kushki).',
     accept: '.xlsx,.xls',
     skippable: false,
+    tooltipText: 'Este es el reporte más importante. Contiene el detalle de cada transacción que procesas.',
   },
   {
     name: 'ventasProductos',
     label: 'Reporte de Ventas por Producto (Excel)',
-    description: 'Detalle de ventas desglosado por cada producto',
+    description: 'Detalle de ventas desglosado por cada producto (PMIX).',
     accept: '.xlsx,.xls',
     skippable: true,
+    tooltipText: 'Nos ayuda a entender qué productos son tus estrellas y cuáles no, para optimizar tu menú.',
   },
   {
     name: 'ventasCliente',
     label: 'Reporte de Ventas por Cliente (Excel)',
-    description: 'Análisis de ventas categorizado por cliente',
+    description: 'Análisis de ventas categorizado por cliente.',
     accept: '.xlsx,.xls',
     skippable: true,
+    tooltipText: 'Si lo tienes, este reporte es oro. Permite identificar a tus clientes más leales y su frecuencia.',
   },
 ];
 </script>
@@ -61,9 +64,13 @@ const fileFields = [
       :key="fField.name"
       class="form-field file-field"
     >
-      <label :for="fField.name + 'File'" class="form-label-file">
-        {{ fField.label }}
-      </label>
+      <div class="form-label-wrapper">
+        <label :for="fField.name + 'File'" class="form-label-file">
+          {{ fField.label }}
+        </label>
+        <TooltipIcon :text="fField.tooltipText" />
+      </div>
+
       <p class="file-description">{{ fField.description }}</p>
       <div class="file-input-area">
         <input
@@ -73,7 +80,6 @@ const fileFields = [
           @change="event => handleFileChange(fField.name, event)"
           class="form-input-file"
           :disabled="props.skippedFiles[fField.name]"
-          
           :class="{ 'input-error': !!props.errors[fField.name] && !props.skippedFiles[fField.name] }"
         />
         <div
@@ -95,11 +101,11 @@ const fileFields = [
           >No tengo este archivo</label
         >
       </div>
-      
       <span v-if="props.errors[fField.name] && !props.skippedFiles[fField.name]" class="error-text">
         {{ props.errors[fField.name] }}
       </span>
     </div>
+
     <div class="form-field policy-acceptance-field">
       <div class="policy-input-group">
         <input
@@ -121,6 +127,7 @@ const fileFields = [
             políticas de seguridad
           </a>.
         </label>
+        <TooltipIcon text="Al aceptar, confirmas que has leído y entendido cómo manejaremos y protegeremos tu información confidencial." />
       </div>
       <span v-if="props.errors.acceptsPolicies" class="error-text">
         {{ props.errors.acceptsPolicies }}
@@ -131,6 +138,13 @@ const fileFields = [
 
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
+
+// 5. Añadimos el estilo para alinear la etiqueta y el icono.
+.form-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .form-step {
   display: flex;
@@ -144,6 +158,7 @@ const fileFields = [
   gap: 0.5rem;
 }
 
+/* El resto de tus estilos permanecen exactamente iguales */
 .form-label-file,
 .form-group-title {
   font-family: $font-secondary;
@@ -304,7 +319,7 @@ const fileFields = [
 }
 
 .policy-label {
-  color: $BAKANO-DARK; // Usar un color más oscuro para legibilidad
+  color: $BAKANO-DARK;
   font-weight: 500;
 }
 
