@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
-// --- AÑADIDO ---
-// Importamos la URL desde nuestro archivo de constantes
 import { DOCUMENTATION_URL } from '@/constants/links.contant';
 
 interface Props {
@@ -30,7 +28,6 @@ const props = withDefaults(defineProps<Props>(), {
       <p class="step-description">
         En los próximos minutos, **recibirás un email con la documentación y guías necesarias**. Para no esperar, puedes acceder directamente y preparar todo antes de tu sesión.
       </p>
-      
       <a
         :href="DOCUMENTATION_URL"
         target="_blank"
@@ -49,6 +46,12 @@ const props = withDefaults(defineProps<Props>(), {
       <p class="step-description">
         El siguiente paso es agendar una reunión con nuestra <strong>experta en marketing, Denisse Quimi</strong>, quien te ayudará a verificar que todo esté configurado exitosamente y resolverá tus dudas.
       </p>
+      <div class="booking-warning">
+        <span class="warning-icon">⚠️</span>
+        <p class="warning-text">
+          <strong>Importante:</strong> La persona encargada del portafolio comercial debe estar presente en la reunión.
+        </p>
+      </div>
       <a
         href="https://go.startfly.app/widget/booking/aeOr41CGE77DzCcjD96Z"
         target="_blank"
@@ -68,6 +71,9 @@ $text-gray-600: #4A5568;
 $text-gray-800: #1A202C;
 $border-radius-lg: 0.5rem;
 $border-color: #E2E8F0;
+$warning-bg-light: #FFFBEB; // Un amarillo pálido
+$warning-border-color: #FBBF24; // Un color ámbar
+$warning-text-color: #92400E; // Un marrón oscuro para el texto
 
 .submitted-message-content {
   display: flex;
@@ -147,6 +153,39 @@ $border-color: #E2E8F0;
   max-width: 90%;
 }
 
+// --- ESTILO AÑADIDO: Estilos para el contenedor de la advertencia ---
+.booking-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 90%;
+  padding: 1rem;
+  border-radius: $border-radius-lg;
+  border: 1px solid $warning-border-color;
+  background-color: $warning-bg-light;
+  margin-top: 0.5rem; // Espacio antes del botón
+
+  .warning-icon {
+    font-size: 1.25rem;
+    line-height: 1.6; // Alinear con el texto
+  }
+
+  .warning-text {
+    font-family: $font-secondary;
+    color: $warning-text-color;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    text-align: left;
+    margin: 0;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+
 .action-button {
   display: inline-block;
   font-family: $font-principal;
@@ -171,7 +210,6 @@ $border-color: #E2E8F0;
     }
   }
 
-  // --- ESTILO AÑADIDO ---
   &.secondary {
     background-color: transparent;
     color: $BAKANO-PINK;
