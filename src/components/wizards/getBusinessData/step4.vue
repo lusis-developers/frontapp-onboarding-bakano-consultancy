@@ -8,27 +8,18 @@ interface FileStatus {
   file?: File;
 }
 
-// === LA CORRECCIÓN ESTÁ AQUÍ ===
-// ANTES: Se esperaban props que el padre ya no envía de esta forma.
-// const props = defineProps<{
-//   fileStatuses: Record<string, FileStatus>;
-//   acceptsPolicies: boolean;
-//   ...
-// }>();
-
-// DESPUÉS: Definimos las props correctas que el padre SÍ está enviando.
 const props = defineProps<{
   values: Record<string, any>;
   errors: Record<string, string | undefined>;
   skippedFiles: Record<string, boolean>;
-
-  // La prop que contiene el estado de los archivos de este paso.
   singleFileStatuses: Record<string, FileStatus | null>;
 }>();
-// === FIN DE LA CORRECCIÓN ===
 
-const emit = defineEmits(['update-file', 'update:form-value']);
+// --- EMITS MODIFICADOS ---
+// Se elimina 'update:form-value' ya que no se manejan campos de formulario aquí, solo archivos.
+const emit = defineEmits(['update-file']);
 
+// --- HANDLERS ---
 const handleFileChange = (fieldName: string, event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0] || null;
@@ -45,15 +36,14 @@ const handleFileChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, file, false);
 };
 
-const handlePolicyChange = (event: Event) => {
-  emit('update:form-value', 'acceptsPolicies', (event.target as HTMLInputElement).checked);
-};
+// --- FUNCIÓN ELIMINADA ---
+// Se elimina `handlePolicyChange` ya que esa lógica se movió.
 
 const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
-// Se mantiene la misma estructura para iterar los campos
+// Se mantiene la definición de los campos de archivo.
 const fileFields = [
   { name: 'ventasMovimientos', label: 'Reporte de Movimientos (Excel)', description: 'Registro de transacciones del restaurante (Ej: Reporte de Datafast, Kushki).', note: 'Idealmente de los últimos 12 meses (máximo 18 meses).', accept: '.xlsx,.xls', skippable: false, tooltipText: 'Este es el reporte más importante. Contiene el detalle de cada transacción que procesas.' },
   { name: 'ventasProductos', label: 'Reporte de Ventas por Producto (Excel)', description: 'Detalle de ventas desglosado por cada producto (PMIX).', note: 'Tamaño óptimo: 20MB (máx. 70MB).', accept: '.xlsx,.xls', skippable: true, tooltipText: 'Nos ayuda a entender qué productos son tus estrellas y cuáles no, para optimizar tu menú.' },
@@ -108,34 +98,7 @@ const fileFields = [
       </span>
     </div>
 
-    <div class="form-field policy-acceptance-field">
-      <div class="policy-input-group">
-        <input
-          type="checkbox"
-          id="acceptsPolicies"
-          class="form-checkbox"
-          :checked="props.values.acceptsPolicies"
-          @change="handlePolicyChange"
-          :class="{ 'input-error': !!props.errors.acceptsPolicies }"
-        />
-        <label for="acceptsPolicies" class="form-label-checkbox policy-label">
-          He leído y acepto las
-          <a
-            href="https://mkt.bakano.ec/politicas"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="policy-link"
-            @click.stop>
-            políticas de seguridad
-          </a>.
-        </label>
-        <TooltipIcon text="Al aceptar, confirmas que has leído y entendido cómo manejaremos y protegeremos tu información confidencial." />
-      </div>
-      <span v-if="props.errors.acceptsPolicies" class="error-text">
-        {{ props.errors.acceptsPolicies }}
-      </span>
     </div>
-  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -179,10 +142,7 @@ const fileFields = [
 .form-group-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid $BAKANO-LIGHT;
-  margin-top: 1rem;
+  margin-bottom: 0; // Ajustado
 }
 
 .file-description {
@@ -224,25 +184,6 @@ const fileFields = [
       background-color: darken($BAKANO-PURPLE, 10%);
     }
   }
-
-  &.input-error {
-    border-color: $BAKANO-PINK;
-
-    &:focus {
-      box-shadow: 0 0 0 2px rgba($BAKANO-PINK, 0.2);
-    }
-  }
-
-  &:disabled {
-    background-color: $BAKANO-LIGHT;
-    cursor: not-allowed;
-    border-style: solid;
-
-    &::file-selector-button {
-      background-color: $BAKANO-LIGHT;
-      cursor: not-allowed;
-    }
-  }
 }
 
 .skip-file-option {
@@ -278,11 +219,6 @@ const fileFields = [
       transform: rotate(45deg);
     }
   }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba($BAKANO-PINK, 0.2);
-  }
 }
 
 .form-label-checkbox {
@@ -300,49 +236,17 @@ const fileFields = [
   border-radius: 8px;
   font-size: 0.8rem;
   margin-top: 0.5rem;
+}
 
-  .checkmark {
-    color: darken($BAKANO-GREEN, 15%);
-    font-weight: bold;
-    margin-left: 0.25rem;
-  }
+.checkmark {
+  color: darken($BAKANO-GREEN, 15%);
+  font-weight: bold;
+  margin-left: 0.25rem;
 }
 
 .error-text {
   font-size: 0.8rem;
   color: $BAKANO-PINK;
   margin-top: 0.1rem;
-}
-
-.policy-acceptance-field {
-  margin-top: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid $BAKANO-LIGHT;
-}
-
-.policy-input-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.policy-label {
-  color: $BAKANO-DARK;
-  font-weight: 500;
-}
-
-.policy-link {
-  color: $BAKANO-PURPLE;
-  text-decoration: underline;
-  font-weight: 600;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: darken($BAKANO-PURPLE, 10%);
-  }
-}
-
-.form-checkbox.input-error+.form-label-checkbox {
-  color: $BAKANO-PINK;
 }
 </style>

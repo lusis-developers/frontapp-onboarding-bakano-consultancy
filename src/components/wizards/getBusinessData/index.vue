@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import * as z from 'zod';
 import { consultancyService } from '@/services/consultancyService';
+import { useConsultancyForm } from '@/composables/useConsultancyForm';
 
-// Componentes
+// --- COMPONENTES ---
 import Step1 from '../getBusinessData/step1.vue';
 import Step2 from '../getBusinessData/step2.vue';
 import Step3 from '../getBusinessData/step3.vue';
 import Step4 from '../getBusinessData/step4.vue';
+import Step5 from '../getBusinessData/step5.vue'; // 👈 1. IMPORTAR el nuevo Step5
 import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
 import OnboardingNextStep from '@/components/onBoardingNextStep.vue';
 
-// --- PROPS Y EMITS ---
+// --- PROPS Y EMITS (sin cambios) ---
 interface BusinessDataOwnProps {
   open: boolean;
   isPreSubmitted?: boolean;
@@ -24,9 +23,9 @@ const props = withDefaults(defineProps<BusinessDataOwnProps>(), {
 });
 const emit = defineEmits(['update:open']);
 
-// --- ESTADO GENERAL DEL WIZARD ---
+// --- ESTADO DEL WIZARD (con ajustes) ---
 const currentStep = ref(1);
-const totalSteps = 4;
+const totalSteps = ref(5); // 👈 2. ACTUALIZAR el número total de pasos
 const isLoading = ref(false);
 const isFormSubmitted = ref(props.isPreSubmitted);
 const submissionError = ref<string>('');
@@ -36,87 +35,15 @@ const route = useRoute();
 const businessId = computed(() => route.params.businessId as string);
 const clientIdFromUrl = route.params.userId as string;
 
-// --- INTERFAZ PARA EL ESTADO DE ARCHIVOS ---
-interface FileStatus {
-  name: string;
-  size: number;
-  uploaded: boolean;
-  file: File;
-}
+// --- LÓGICA DEL FORMULARIO (desde el Composable, sin cambios) ---
+const {
+  values, errors, skippedFiles, menuRestauranteFiles, singleFileStatuses,
+  handleFormValueUpdateFromChild, handleAddMenuFiles, handleRemoveMenuFile, updateFile,
+  handleSubmit, validateField
+} = useConsultancyForm();
 
-// --- ESTADOS DE ARCHIVO SEPARADOS (LA SOLUCIÓN DEFINITIVA) ---
-const skippedFiles = ref<Record<string, boolean>>({
-  menuRestaurante: false,
-  costoPorPlato: false,
-  ventasMovimientos: false,
-  ventasProductos: false,
-  ventasCliente: false,
-});
 
-// Estado exclusivo para la lista de archivos del menú
-const menuRestauranteFiles = ref<FileStatus[]>([]);
-
-// Estado exclusivo para los archivos que son únicos
-const singleFileStatuses = ref<Record<string, FileStatus | null>>({
-  costoPorPlato: null,
-  ventasMovimientos: null,
-  ventasProductos: null,
-  ventasCliente: null,
-});
-
-// --- ESQUEMA DE VALIDACIÓN ZOD ---
-const MAX_MENU_FILES = 5;
-const multiFileSchema = z.array(z.instanceof(File))
-  .min(1, "Debes subir al menos un archivo para el menú.")
-  .max(MAX_MENU_FILES, `No puedes subir más de ${MAX_MENU_FILES} archivos.`);
-
-const registrationFormSchema = z.object({
-  instagram: z.string().min(1, "Cuenta de Instagram es requerida"),
-  tiktok: z.string().min(1, "Cuenta de TikTok es requerida"),
-  empleados: z.preprocess(v => String(v), z.string().min(1, "Número de empleados es requerido")),
-  ingresoMensual: z.preprocess(v => String(v), z.string().min(1, "Ingreso mensual es requerido")),
-  ingresoAnual: z.preprocess(v => String(v), z.string().min(1, "Ingreso anual es requerido")),
-  vendePorWhatsapp: z.boolean().optional(),
-  gananciaWhatsapp: z.preprocess(v => String(v), z.string().optional()),
-  desafioPrincipal: z.string().min(1, "Desafío principal es requerido"),
-  objetivoIdeal: z.string().min(1, "Objetivo ideal es requerido"),
-  menuRestaurante: multiFileSchema.optional(),
-  costoPorPlato: z.instanceof(File).optional(),
-  ventasMovimientos: z.instanceof(File).optional(),
-  ventasProductos: z.instanceof(File).optional(),
-  ventasCliente: z.instanceof(File).optional(),
-  acceptsPolicies: z.boolean().refine(val => val === true, {
-    message: "Debes aceptar las políticas para continuar.",
-  }),
-}).refine(data => skippedFiles.value.menuRestaurante || (data.menuRestaurante && data.menuRestaurante.length > 0), {
-  message: "El menú es requerido si no marcas 'No tengo este archivo'.",
-  path: ["menuRestaurante"],
-}).refine(data => !data.vendePorWhatsapp || (data.vendePorWhatsapp && data.gananciaWhatsapp && data.gananciaWhatsapp.length > 0), {
-  message: "Si vendes por WhatsApp, indica la ganancia estimada.",
-  path: ["gananciaWhatsapp"],
-});
-
-type FormValues = z.infer<typeof registrationFormSchema>;
-
-// --- INICIALIZACIÓN DEL FORMULARIO VEE-VALIDATE ---
-const { handleSubmit, values, errors, setFieldValue, validateField } = useForm<FormValues>({
-  validationSchema: toTypedSchema(registrationFormSchema),
-  initialValues: {
-    instagram: '',
-    tiktok: '',
-    empleados: '',
-    ingresoMensual: '',
-    ingresoAnual: '',
-    vendePorWhatsapp: false,
-    gananciaWhatsapp: '',
-    desafioPrincipal: '',
-    objetivoIdeal: '',
-    acceptsPolicies: false,
-    menuRestaurante: [],
-  },
-});
-
-// --- WATCHERS Y NAVEGACIÓN ---
+// --- NAVEGACIÓN (con ajustes) ---
 watch(() => props.open, (newVal) => {
   if (newVal && props.isPreSubmitted) isFormSubmitted.value = true;
 });
@@ -124,84 +51,47 @@ const attemptCloseWizard = () => { if (!props.isPreSubmitted && !isLoading.value
 const closeWizard = () => emit('update:open', false);
 const handleConfirmedClose = (val: boolean) => { if (!val) closeWizard(); };
 const prevStep = () => { if (currentStep.value > 1) currentStep.value--; };
-const stepFields: Record<number, (keyof FormValues)[]> = { 1: ['instagram', 'tiktok', 'empleados'], 2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'], 3: ['objetivoIdeal'], 4: [] };
+
+// 👇 3. ACTUALIZAR los campos a validar por paso
+const stepFields = {
+  1: ['instagram', 'tiktok', 'empleados'],
+  2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'],
+  3: ['objetivoIdeal'],
+  4: [], // El paso 4 ahora no valida nada, solo sube archivos
+  5: ['acceptsPolicies'] // La validación de políticas se mueve al paso 5
+};
 const nextStep = async () => {
   submissionError.value = '';
+  // @ts-ignore
   const fieldsToValidate = stepFields[currentStep.value] || [];
   let allStepFieldsValid = true;
   for (const fieldName of fieldsToValidate) {
+    // @ts-ignore
     const result = await validateField(fieldName);
     if (!result.valid) allStepFieldsValid = false;
   }
   if (allStepFieldsValid) {
-    if (currentStep.value < totalSteps) currentStep.value++;
+    if (currentStep.value < totalSteps.value) currentStep.value++;
   } else {
     submissionError.value = "Por favor, completa todos los campos requeridos.";
   }
 };
 
-// --- MANEJADORES DE EVENTOS DE ARCHIVOS ---
-const handleFormValueUpdateFromChild = (fieldName: keyof FormValues, value: any) => {
-  setFieldValue(fieldName, value);
-};
-
-const handleAddMenuFiles = (newFiles: File[]) => {
-  const newFileStatuses = newFiles.map(file => ({ name: file.name, size: file.size, uploaded: true, file }));
-  const combinedFiles = [...menuRestauranteFiles.value, ...newFileStatuses].slice(0, MAX_MENU_FILES);
-  menuRestauranteFiles.value = combinedFiles;
-  skippedFiles.value.menuRestaurante = false;
-  setFieldValue('menuRestaurante', combinedFiles.map(f => f.file));
-  validateField('menuRestaurante');
-};
-
-const handleRemoveMenuFile = (indexToRemove: number) => {
-  const updatedFiles = menuRestauranteFiles.value.filter((_, index) => index !== indexToRemove);
-  menuRestauranteFiles.value = updatedFiles;
-  const filesForVeeValidate = updatedFiles.map(f => f.file);
-  setFieldValue('menuRestaurante', filesForVeeValidate.length > 0 ? filesForVeeValidate : undefined);
-  validateField('menuRestaurante');
-};
-
-const updateFile = (fieldName: string, file: File | null, isSkipped: boolean) => {
-  skippedFiles.value[fieldName] = isSkipped;
-  if (fieldName === 'menuRestaurante') {
-    if (isSkipped) {
-      menuRestauranteFiles.value = [];
-      setFieldValue('menuRestaurante', undefined);
-    }
-    validateField('menuRestaurante');
-    return;
-  }
-  const fieldKey = fieldName as keyof typeof singleFileStatuses.value;
-  if (isSkipped || !file) {
-    singleFileStatuses.value[fieldKey] = null;
-    setFieldValue(fieldName as any, undefined);
-  } else {
-    singleFileStatuses.value[fieldKey] = { name: file.name, size: file.size, uploaded: true, file };
-    setFieldValue(fieldName as any, file);
-  }
-  validateField(fieldName as any);
-};
-
-// --- LÓGICA DE ENVÍO FINAL ---
+// --- LÓGICA DE ENVÍO FINAL (sin cambios) ---
 const finalSubmit = handleSubmit(async (formData) => {
   isLoading.value = true;
   submissionError.value = '';
   const dataToSend = new FormData();
 
-  // 1. Añadir campos que NO son de archivo
   Object.entries(formData).forEach(([key, value]) => {
     if (!(value instanceof File) && !Array.isArray(value) && value !== undefined && value !== null) {
       dataToSend.append(key, String(value));
     }
   });
 
-  // 2. Añadir array de archivos del menú
   if (!skippedFiles.value.menuRestaurante) {
     menuRestauranteFiles.value.forEach(status => dataToSend.append('menuRestaurante', status.file));
   }
-
-  // 3. Añadir los otros archivos únicos
   Object.entries(singleFileStatuses.value).forEach(([fieldName, status]) => {
     if (status && !skippedFiles.value[fieldName]) {
       dataToSend.append(fieldName, status.file);
@@ -219,8 +109,8 @@ const finalSubmit = handleSubmit(async (formData) => {
   }
 });
 
-// --- MAPEO DE COMPONENTES DE PASO ---
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4 };
+// 👇 4. AÑADIR Step5 al mapa de componentes
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
@@ -245,24 +135,23 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
             <Transition name="step-transition" mode="out-in">
               
               <component
-                :is="activeStepComponent"
-                :key="currentStep"
-                v-if="activeStepComponent"
-                :values="values"
-                :errors="errors"
-                :skipped-files="skippedFiles"
-                
-                :menu-files="menuRestauranteFiles"
-                :single-file-statuses="singleFileStatuses"
-                
-                @update:form-value="handleFormValueUpdateFromChild"
-                @update-file="updateFile"
-                @add-menu-files="handleAddMenuFiles"
-                @remove-menu-file="handleRemoveMenuFile"
+                  :is="activeStepComponent"
+                  :key="currentStep"
+                  v-if="activeStepComponent"
+                  :values="values"
+                  :errors="errors"
+                  :skipped-files="skippedFiles"
+                  
+                  :menu-files="menuRestauranteFiles"
+                  :single-file-statuses="singleFileStatuses"
+                  
+                  :business-id="businessId" @update:form-value="handleFormValueUpdateFromChild"
+                  @update-file="updateFile"
+                  @add-menu-files="handleAddMenuFiles"
+                  @remove-menu-file="handleRemoveMenuFile"
 
-                class="step-component-wrapper"
-              />
-              </Transition>
+                  class="step-component-wrapper" />
+            </Transition>
           </div>
 
           <div v-if="submissionError" class="error-message-container" :class="{ 'global-error': currentStep === totalSteps && !isLoading, 'step-error': currentStep < totalSteps || isLoading }">
