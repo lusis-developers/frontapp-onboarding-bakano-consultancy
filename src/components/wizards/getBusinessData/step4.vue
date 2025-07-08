@@ -1,89 +1,63 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
 import TooltipIcon from '@/components/shared/TooltipIcon.vue';
 
-interface FileStatus { name: string; uploaded: boolean; file?: File }
+// Interfaz para el estado de los archivos
+interface FileStatus {
+  name: string;
+  uploaded: boolean;
+  file?: File;
+}
 
+// === LA CORRECCIÓN ESTÁ AQUÍ ===
+// ANTES: Se esperaban props que el padre ya no envía de esta forma.
+// const props = defineProps<{
+//   fileStatuses: Record<string, FileStatus>;
+//   acceptsPolicies: boolean;
+//   ...
+// }>();
+
+// DESPUÉS: Definimos las props correctas que el padre SÍ está enviando.
 const props = defineProps<{
   values: Record<string, any>;
   errors: Record<string, string | undefined>;
-  fileStatuses: Record<string, FileStatus>;
   skippedFiles: Record<string, boolean>;
-  acceptsPolicies: boolean;
+
+  // La prop que contiene el estado de los archivos de este paso.
+  singleFileStatuses: Record<string, FileStatus | null>;
 }>();
+// === FIN DE LA CORRECCIÓN ===
 
 const emit = defineEmits(['update-file', 'update:form-value']);
 
-// --- INICIO DE LA LÓGICA DE VALIDACIÓN MEJORADA ---
 const handleFileChange = (fieldName: string, event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0] || null;
 
   if (file) {
-    const OPTIMAL_SIZE_MB = 20;
     const MAX_SIZE_MB = 70;
-    const OPTIMAL_SIZE_BYTES = OPTIMAL_SIZE_MB * 1024 * 1024;
     const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
-
     if (file.size > MAX_SIZE_BYTES) {
-      alert(
-        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es demasiado grande.\n\n` +
-        `El tamaño máximo absoluto permitido es de ${MAX_SIZE_MB}MB. Por favor, comprime el archivo o elige uno más pequeño.`
-      );
+      alert(`El archivo es demasiado grande (máx. ${MAX_SIZE_MB}MB).`);
       target.value = '';
       return;
     }
-    if (file.size > OPTIMAL_SIZE_BYTES) {
-      const isConfirmed = confirm(
-        `El archivo "${file.name}" (${(file.size / 1024 / 1024).toFixed(1)}MB) es más grande de lo óptimo.\n\n` +
-        `La subida podría demorar. Por favor, no cierres esta página hasta que se complete.\n\n` +
-        `¿Deseas continuar con la subida?`
-      );
-
-      if (!isConfirmed) {
-        target.value = '';
-        return;
-      }
-    }
   }
-
-  emit('update-file', fieldName, file, !!props.skippedFiles[fieldName]);
+  emit('update-file', fieldName, file, false);
 };
+
 const handlePolicyChange = (event: Event) => {
   emit('update:form-value', 'acceptsPolicies', (event.target as HTMLInputElement).checked);
 };
+
 const handleSkipChange = (fieldName: string, event: Event) => {
   emit('update-file', fieldName, null, (event.target as HTMLInputElement).checked);
 };
 
+// Se mantiene la misma estructura para iterar los campos
 const fileFields = [
-  {
-    name: 'ventasMovimientos',
-    label: 'Reporte de Movimientos (Excel)',
-    description: 'Registro de transacciones del restaurante (Ej: Reporte de Datafast, Kushki).',
-    note: 'Idealmente de los últimos 12 meses (máximo 18 meses).',
-    accept: '.xlsx,.xls',
-    skippable: false,
-    tooltipText: 'Este es el reporte más importante. Contiene el detalle de cada transacción que procesas.',
-  },
-  {
-    name: 'ventasProductos',
-    label: 'Reporte de Ventas por Producto (Excel)',
-    description: 'Detalle de ventas desglosado por cada producto (PMIX).',
-    note: 'Tamaño óptimo: 20MB (máx. 70MB).',
-    accept: '.xlsx,.xls',
-    skippable: true,
-    tooltipText: 'Nos ayuda a entender qué productos son tus estrellas y cuáles no, para optimizar tu menú.',
-  },
-  {
-    name: 'ventasCliente',
-    label: 'Reporte de Ventas por Cliente (Excel)',
-    description: 'Análisis de ventas categorizado por cliente.',
-    note: 'Tamaño óptimo: 20MB (máx. 70MB).',
-    accept: '.xlsx,.xls',
-    skippable: true,
-    tooltipText: 'Si lo tienes, este reporte es oro. Permite identificar a tus clientes más leales y su frecuencia.',
-  },
+  { name: 'ventasMovimientos', label: 'Reporte de Movimientos (Excel)', description: 'Registro de transacciones del restaurante (Ej: Reporte de Datafast, Kushki).', note: 'Idealmente de los últimos 12 meses (máximo 18 meses).', accept: '.xlsx,.xls', skippable: false, tooltipText: 'Este es el reporte más importante. Contiene el detalle de cada transacción que procesas.' },
+  { name: 'ventasProductos', label: 'Reporte de Ventas por Producto (Excel)', description: 'Detalle de ventas desglosado por cada producto (PMIX).', note: 'Tamaño óptimo: 20MB (máx. 70MB).', accept: '.xlsx,.xls', skippable: true, tooltipText: 'Nos ayuda a entender qué productos son tus estrellas y cuáles no, para optimizar tu menú.' },
+  { name: 'ventasCliente', label: 'Reporte de Ventas por Cliente (Excel)', description: 'Análisis de ventas categorizado por cliente.', note: 'Tamaño óptimo: 20MB (máx. 70MB).', accept: '.xlsx,.xls', skippable: true, tooltipText: 'Si lo tienes, este reporte es oro. Permite identificar a tus clientes más leales y su frecuencia.' },
 ];
 </script>
 
@@ -96,9 +70,7 @@ const fileFields = [
       class="form-field file-field"
     >
       <div class="form-label-wrapper">
-        <label :for="fField.name + 'File'" class="form-label-file">
-          {{ fField.label }}
-        </label>
+        <label :for="fField.name + 'File'" class="form-label-file">{{ fField.label }}</label>
         <TooltipIcon :text="fField.tooltipText" />
       </div>
 
@@ -115,10 +87,10 @@ const fileFields = [
           :class="{ 'input-error': !!props.errors[fField.name] && !props.skippedFiles[fField.name] }"
         />
         <div
-          v-if="props.fileStatuses[fField.name]?.uploaded && !props.skippedFiles[fField.name]"
+          v-if="props.singleFileStatuses[fField.name]?.uploaded && !props.skippedFiles[fField.name]"
           class="file-status-chip"
         >
-          {{ props.fileStatuses[fField.name].name }} <span class="checkmark">✓</span>
+          {{ props.singleFileStatuses[fField.name]?.name }} <span class="checkmark">✓</span>
         </div>
       </div>
       <div v-if="fField.skippable" class="skip-file-option">
@@ -129,9 +101,7 @@ const fileFields = [
           @change="event => handleSkipChange(fField.name, event)"
           class="form-checkbox"
         />
-        <label :for="'skip_' + fField.name" class="form-label-checkbox"
-          >No tengo este archivo</label
-        >
+        <label :for="'skip_' + fField.name" class="form-label-checkbox">No tengo este archivo</label>
       </div>
       <span v-if="props.errors[fField.name] && !props.skippedFiles[fField.name]" class="error-text">
         {{ props.errors[fField.name] }}
@@ -144,7 +114,7 @@ const fileFields = [
           type="checkbox"
           id="acceptsPolicies"
           class="form-checkbox"
-          :checked="props.acceptsPolicies"
+          :checked="props.values.acceptsPolicies"
           @change="handlePolicyChange"
           :class="{ 'input-error': !!props.errors.acceptsPolicies }"
         />
@@ -155,7 +125,7 @@ const fileFields = [
             target="_blank"
             rel="noopener noreferrer"
             class="policy-link"
-            @click.stop >
+            @click.stop>
             políticas de seguridad
           </a>.
         </label>
