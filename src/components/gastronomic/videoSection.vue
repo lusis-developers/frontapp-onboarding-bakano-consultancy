@@ -16,7 +16,7 @@
       <div class="video-embed-wrapper">
         <iframe
           class="video-iframe"
-          src="https://www.youtube.com/embed/oq1lfeO8XPc"
+          src="https://www.youtube.com/embed/P1-0NIUsg2U"
           title="Video Explicativo Bakano"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
