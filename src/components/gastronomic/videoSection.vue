@@ -10,14 +10,13 @@
         Video Explicativo
       </h2>
       <p class="video-description">
-        A continuación podrás ver un video que explica en detalle cómo optimizaremos tu negocio
-        gastronómico y los resultados que podemos lograr juntos.
+        A continuación podrás ver un video que explica en detalle cómo optimizaremos tu negocio y los resultados que podemos lograr juntos.
       </p>
 
       <div class="video-embed-wrapper">
         <iframe
           class="video-iframe"
-          src="https://www.youtube.com/watch?v=P1-0NIUsg2U"
+          src="https://www.youtube.com/embed/oq1lfeO8XPc"
           title="Video Explicativo Bakano"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
