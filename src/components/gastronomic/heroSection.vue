@@ -10,8 +10,7 @@
           <span class="hero-title-gradient">¡Gracias por unirte</span> a nosotros!
         </h1>
         <p class="hero-subtitle">
-          Estamos entusiasmados de empezar a trabajar contigo para llevar tu negocio gastronómico
-          al siguiente nivel.
+          Estamos entusiasmados de empezar a trabajar contigo para llevar tu negocio al siguiente nivel.
         </p>
       </div>
 
