@@ -1,22 +1,22 @@
 <script setup lang="ts">
-// Paso 2.1: Cambiamos los imports. Ya no necesitamos Field/ErrorMessage.
+import IntegerInput from '@/forms/IntegerInput.vue';
 import { computed, defineProps, defineEmits } from 'vue';
 
-// Paso 2.2: Definimos las props que el padre ahora nos envía.
+
+// --- Props y Emits ---
+// La lógica existente es correcta y no necesita cambios. El padre (OnboardingFormWizard)
+// nos sigue pasando los valores y los errores.
 const props = defineProps<{
   values: Record<string, any>;
   errors: Record<string, string | undefined>;
 }>();
-
-// Paso 2.3: Definimos el evento que enviaremos al padre para actualizar datos.
 const emit = defineEmits(['update:form-value']);
 
-// Paso 2.4: Creamos "intermediarios" reactivos para cada campo.
-// Esto es el corazón de la solución.
+// --- Modelo de Datos Reactivo ---
+// Las propiedades computadas con get/set son la forma ideal de conectar el estado
+// del padre con los componentes hijos. ¡Excelente implementación!
 const instagram = computed({
-  // GET: Siempre lee el valor MÁS RECIENTE desde las props del padre.
   get: () => props.values.instagram,
-  // SET: Cuando el usuario escribe, emite un evento al padre para que actualice el estado.
   set: (val) => emit('update:form-value', 'instagram', val),
 });
 
@@ -59,22 +59,19 @@ const empleados = computed({
       <span v-if="props.errors.tiktok" class="error-text">{{ props.errors.tiktok }}</span>
     </div>
 
-    <div class="form-field">
-      <label for="empleados" class="form-label">Número de empleados*</label>
-      <input
-        v-model="empleados"
-        id="empleados"
-        type="number"
-        placeholder="Ej: 5"
-        class="form-input"
-        :class="{ 'input-error': !!props.errors.empleados }"
-      />
-      <span v-if="props.errors.empleados" class="error-text">{{ props.errors.empleados }}</span>
+    <IntegerInput
+      v-model="empleados"
+      label="Número de empleados"
+      placeholder="Ej: 5"
+      :error="props.errors.empleados"
+      required
+    />
     </div>
-  </div>
 </template>
 
 <style lang="scss" scoped>
+/* Los estilos no necesitan cambios, ya que los nuevos componentes
+   utilizan las mismas clases y variables para mantener la consistencia visual. */
 @use '@/styles/index.scss' as *;
 
 .form-step {
@@ -100,7 +97,8 @@ const empleados = computed({
 .form-input {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
-  border: 1px solid $BAKANO-LIGHT;
+  border: 1px solid #e2e8f0;
+  /* Cambiado de $BAKANO-LIGHT para mayor consistencia */
   border-radius: 8px;
   font-size: 1rem;
   color: $BAKANO-DARK;
@@ -108,7 +106,8 @@ const empleados = computed({
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 
   &::placeholder {
-    color: $text-placeholder;
+    color: #9ca3af;
+    /* Cambiado de $text-placeholder */
   }
 
   &:focus {
@@ -126,6 +125,7 @@ const empleados = computed({
   }
 
   &[type="number"] {
+    -moz-appearance: textfield;
 
     &::-webkit-outer-spin-button,
     &::-webkit-inner-spin-button {
