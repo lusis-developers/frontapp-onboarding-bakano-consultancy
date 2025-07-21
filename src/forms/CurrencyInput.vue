@@ -152,11 +152,6 @@ const guidanceText = computed(() => {
     }
   }
 
-  // Oculta las flechas de los inputs tipo 'number' en todos los navegadores
-  &[type="number"] {
-    -moz-appearance: textfield;
-  }
-
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;

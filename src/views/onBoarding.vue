@@ -1,27 +1,36 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+// 1. IMPORTAMOS useRoute DE VUE ROUTER
+import { useRoute } from 'vue-router';
+
+// --- Composables ---
 import { useBusinessOnboarding } from '@/composables/useBusinessOnboarding';
 
+// --- Constantes ---
 import { CALENDLY_LINK } from '@/constants/links.contant';
 
+// --- Componentes ---
 import OnboardingFormWizard from '@/components/wizards/OnboardingFormWizard.vue';
+import MeetingScheduler from '@/components/gastronomic/MeetingScheduler.vue';
 import HeroSection from '@/components/gastronomic/heroSection.vue';
 import VideoSection from '@/components/gastronomic/videoSection.vue';
 import BusinessInfoDisplay from '@/components/gastronomic/BusinessInfoDisplay.vue';
-import CallToAction from '@/components/gastronomic/callToAction.vue';
 import OnboardingActionBar from '@/components/shared/OnboardingActionBar.vue';
 import PageFeedback from '@/components/shared/PageFeedback.vue';
 import NotFound from '@/views/notFound.vue';
 
-const props = defineProps({
-  userId: {
-    type: String,
-    required: true,
-  },
-  businessId: {
-    type: String,
-    required: true,
-  }
-});
+// --- Lógica del Componente ---
+
+// 2. OBTENEMOS LOS PARÁMETROS DIRECTAMENTE DE LA RUTA
+// Este método es más robusto que depender de props inyectadas por el router.
+const route = useRoute();
+const routeParams = computed(() => ({
+  userId: route.params.userId as string,
+  businessId: route.params.businessId as string,
+}));
+
+// 3. PASAMOS LOS PARÁMETROS OBTENIDOS AL COMPOSABLE
+// Ahora estamos 100% seguros de que los IDs son correctos.
 const {
   isLoading,
   businessData,
@@ -29,7 +38,7 @@ const {
   serverError,
   isAlreadySubmitted,
   refetch
-} = useBusinessOnboarding(props);
+} = useBusinessOnboarding(routeParams.value);
 
 const handleFormCompletion = async () => {
   await refetch();
@@ -49,7 +58,7 @@ const handleFormCompletion = async () => {
           <OnboardingActionBar
             :is-submitted="isAlreadySubmitted"
             :scheduling-url="CALENDLY_LINK"
-            cta-target-id="comenzar"
+            cta-target-id="scheduler"
           />
           <HeroSection
             quote="Juntos analizaremos los datos y estrategias de tu negocio para que empieces a crecer con control y previsión."
@@ -62,17 +71,16 @@ const handleFormCompletion = async () => {
               Estamos entusiasmados de empezar a trabajar contigo para llevar tu negocio al siguiente nivel.
             </template>
           </HeroSection>
+
           <BusinessInfoDisplay :business="businessData" />
+
           <VideoSection
             title="Nuestra Estrategia, Siempre a tu Alcance"
             description="Sabemos que son muchos detalles. Si en algún momento olvidas los pasos que seguiremos para transformar tu negocio, este video es tu recordatorio."
             video-url="https://www.youtube.com/embed/dQw4w9WgXcQ"
           />
-          <CallToAction
-            id="comenzar"
-            :is-already-submitted="isAlreadySubmitted"
-            :scheduling-url="CALENDLY_LINK"
-          />
+
+          <MeetingScheduler id="scheduler" :client-id="routeParams.userId" />
         </div>
 
         <div v-else class="wizard-view">
@@ -88,13 +96,14 @@ const handleFormCompletion = async () => {
 </template>
 
 <style lang="scss" scoped>
+/* Tus estilos no necesitan cambios. */
 @use '@/styles/index.scss' as *;
 
 .onboarding-page-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: $white;
+  background-color: $BAKANO-LIGHT;
 }
 
 .main-content {
@@ -110,10 +119,12 @@ const handleFormCompletion = async () => {
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
