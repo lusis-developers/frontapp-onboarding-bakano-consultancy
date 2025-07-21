@@ -2,13 +2,21 @@
 import { ref } from 'vue';
 import BusinessData from '@/components/wizards/getBusinessData/index.vue';
 
-// ORDEN RECIBIDA: Acepta la decisión del padre como una prop.
+// 1. AÑADIMOS defineOptions
+// Esto le dice a Vue: "No intentes heredar los atributos automáticamente en el elemento raíz.
+// Yo me encargaré de hacerlo manualmente con v-bind='$attrs'".
+defineOptions({
+  inheritAttrs: false
+});
+
+// El resto de tu script se mantiene igual.
 const props = defineProps<{
   isAlreadySubmitted: boolean;
+  // La prop schedulingUrl que añadimos anteriormente es correcta.
+  schedulingUrl: string;
 }>();
 
-// El estado inicial del modal depende de la orden del padre.
-const isModalOpen = ref(props.isAlreadySubmitted);
+const isModalOpen = ref(false);
 
 const handleOpenFormClick = () => {
   isModalOpen.value = true;
@@ -17,53 +25,60 @@ const handleOpenFormClick = () => {
 const handleModalClose = (newOpenState: boolean) => {
   isModalOpen.value = newOpenState;
 };
+
+const goToScheduling = () => {
+  if (props.schedulingUrl) {
+    window.location.href = props.schedulingUrl;
+  }
+};
 </script>
 
 <template>
-  <section id="comenzar" class="cta-section">
-    <div class="cta-container">
-      <div class="cta-card">
-        <template v-if="!props.isAlreadySubmitted">
-          <h2 class="cta-title">¿Listo para <span class="cta-title-gradient">Transformar</span> tu Negocio?</h2>
-          <p class="cta-description">Para continuar con el proceso, haz click en el botón a continuación.</p>
-          <div class="cta-actions">
-            <button class="cta-button" @click="handleOpenFormClick">¡Comenzar Ahora!</button>
+  <div>
+    <section v-bind="$attrs" class="cta-section">
+      <div class="cta-container">
+        <div class="cta-card">
+          <div v-if="!props.isAlreadySubmitted" class="cta-content">
+            <h2 class="cta-title">¿Listo para <span class="cta-title-gradient">Transformar</span> tu Negocio?</h2>
+            <p class="cta-description">Para iniciar nuestra consultoría, necesitamos que completes la información de tu negocio.</p>
+            <div class="cta-actions">
+              <button class="cta-button" @click="handleOpenFormClick">Completar Información</button>
+            </div>
           </div>
-        </template>
-        <template v-else>
-           <h2 class="cta-title">¡Ya casi está todo listo!</h2>
-           <p class="cta-description">Recibimos tu información correctamente. Por favor, agenda tu reunión para dar el siguiente paso.</p>
-        </template>
+          <div v-else class="cta-content submitted">
+             <h2 class="cta-title">¡Información Recibida!</h2>
+             <p class="cta-description">Hemos recibido y verificado los datos de tu negocio. El siguiente paso es agendar tu sesión de diagnóstico inicial.</p>
+             <div class="cta-actions">
+               <button class="cta-button schedule" @click="goToScheduling">Agendar Reunión Ahora</button>
+             </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <BusinessData
-    :open="isModalOpen"
-    @update:open="handleModalClose"
-    :is-pre-submitted="props.isAlreadySubmitted"
-  />
+    <BusinessData
+      v-if="!props.isAlreadySubmitted"
+      :open="isModalOpen"
+      @update:open="handleModalClose"
+      :is-pre-submitted="props.isAlreadySubmitted"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>
-@use '@/styles/index.scss' as *; // Tus variables globales SCSS
+@use '@/styles/index.scss' as *;
 
-// Variables de utilidad basadas en tu paleta
-$text-body-color-on-light-bg: rgba($BAKANO-DARK, 0.75); // Para texto secundario sobre fondos claros
+// La mayoría de los estilos se mantienen. Solo añadimos una variación para el botón de agendar.
+$text-body-color-on-light-bg: rgba($BAKANO-DARK, 0.75);
 $card-background-color: $white;
-$section-background-color: $BAKANO-LIGHT; // Fondo claro para la sección, hace resaltar la tarjeta blanca
-
+$section-background-color: $BAKANO-LIGHT;
 $border-radius-default: 0.5rem;
 $border-radius-large: 1rem;
-
-// Sombras (pueden ser genéricas, ya que no dependen directamente del color)
-$box-shadow-subtle: 0 4px 15px rgba(0, 0, 0, 0.06);
 $box-shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.08);
-
 $breakpoint-md: 768px;
 
 .cta-section {
-  background-color: $section-background-color; // Usamos BAKANO-LIGHT para el fondo de la sección
+  background-color: $section-background-color;
   padding: 4rem 1rem;
 
   @media (min-width: $breakpoint-md) {
@@ -72,23 +87,38 @@ $breakpoint-md: 768px;
 }
 
 .cta-container {
-  max-width: 800px; // Ajustado para que no sea excesivamente ancho
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .cta-card {
-  background-color: $card-background-color; // Tarjeta blanca
+  background-color: $card-background-color;
   border-radius: $border-radius-large;
   padding: 2.5rem;
   box-shadow: $box-shadow-medium;
   text-align: center;
-  // No usamos borde explícito, la sombra y el contraste de fondo son suficientes
+  transition: all 0.3s ease-in-out;
 
   @media (min-width: $breakpoint-md) {
     padding: 3rem 3.5rem;
+  }
+}
+
+.cta-content.submitted {
+  // Animación sutil para indicar que el contenido ha cambiado
+  animation: fadeInContent 0.5s ease-out;
+}
+
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -96,7 +126,7 @@ $breakpoint-md: 768px;
   font-family: $font-principal;
   font-weight: 700;
   color: $BAKANO-DARK;
-  font-size: 1.8rem; // Ligeramente ajustado
+  font-size: 1.8rem;
   line-height: 1.35;
   margin-bottom: 1rem;
 
@@ -114,11 +144,11 @@ $breakpoint-md: 768px;
 
 .cta-description {
   font-family: $font-secondary;
-  color: $text-body-color-on-light-bg; // Texto oscuro pero suavizado
+  color: $text-body-color-on-light-bg;
   font-size: 1.05rem;
   line-height: 1.75;
   max-width: 580px;
-  margin: 0 auto 2rem auto;
+  margin: 0 auto 2rem;
 
   @media (min-width: $breakpoint-md) {
     font-size: 1.1rem;
@@ -132,7 +162,7 @@ $breakpoint-md: 768px;
 .cta-button {
   display: inline-block;
   background-color: $BAKANO-PINK;
-  color: $white; // $text-light podría ser una opción si $white es demasiado brillante
+  color: $white;
   font-family: $font-principal;
   font-weight: 600;
   padding: 0.9rem 2.25rem;
@@ -140,11 +170,10 @@ $breakpoint-md: 768px;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  transition: background-color 0.25s ease-out, transform 0.15s ease-out, box-shadow 0.25s ease-out;
-  text-align: center;
+  transition: all 0.25s ease-out;
   font-size: 1.05rem;
   letter-spacing: 0.025em;
-  box-shadow: 0 2px 8px rgba($BAKANO-PINK, 0.3); // Sombra sutil con el color del botón
+  box-shadow: 0 2px 8px rgba($BAKANO-PINK, 0.3);
 
   &:hover {
     background-color: darken($BAKANO-PINK, 8%);
@@ -152,9 +181,14 @@ $breakpoint-md: 768px;
     box-shadow: 0 4px 12px rgba($BAKANO-PINK, 0.4);
   }
 
-  &:active {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba($BAKANO-PINK, 0.3);
+  &.schedule {
+    background-color: $BAKANO-PURPLE;
+    box-shadow: 0 2px 8px rgba($BAKANO-PURPLE, 0.3);
+
+    &:hover {
+      background-color: darken($BAKANO-PURPLE, 8%);
+      box-shadow: 0 4px 12px rgba($BAKANO-PURPLE, 0.4);
+    }
   }
 }
 </style>

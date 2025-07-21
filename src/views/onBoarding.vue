@@ -1,78 +1,90 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import type { Business } from '@/types/business';
+import { toRefs } from 'vue';
+import { useBusinessOnboarding } from '@/composables/useBusinessOnboarding';
+import { CALENDLY_LINK } from '@/constants/links.contant';
 
-// Componentes
-import CallToAction from '@/components/gastronomic/callToAction.vue';
+
 import HeroSection from '@/components/gastronomic/heroSection.vue';
 import VideoSection from '@/components/gastronomic/videoSection.vue';
-// 1. Importa tu componente de "Página no encontrada"
+import BusinessInfoDisplay from '@/components/gastronomic/BusinessInfoDisplay.vue';
+import CallToAction from '@/components/gastronomic/callToAction.vue';
+import PageFeedback from '@/components/shared/PageFeedback.vue';
+import OnboardingActionBar from '@/components/shared/OnboardingActionBar.vue';
 import NotFound from '@/views/notFound.vue';
-import { clientService } from '@/services/clientService.service';
 
-const props = defineProps<{
-  userId: string;
-  businessId: string;
-}>();
-
-const isLoading = ref(true);
-const businessData = ref<Business | null>(null);
-// 2. Añadimos un nuevo estado para el error específico
-const businessNotFound = ref(false);
-
-onMounted(async () => {
-  try {
-    const response = await clientService.getClientAndBusiness(props.userId, props.businessId);
-    const client = response.data.client;
-
-    if (client && client.businesses) {
-      const foundBusiness = client.businesses.find(b => b._id === props.businessId);
-      if (foundBusiness) {
-        businessData.value = foundBusiness;
-      } else {
-        // Si el array de negocios no contiene el ID, lo marcamos como no encontrado.
-        console.error(`Negocio con ID ${props.businessId} no encontrado en la lista del cliente.`);
-        businessNotFound.value = true;
-      }
-    }
-  } catch (error: any) {
-    // 3. Mejoramos el bloque CATCH para identificar el error 404
-    console.error("Error al obtener datos:", error);
-    // Tu httpBase lanza un objeto con `status`. ¡Usémoslo!
-    // Si el status es 404 (Not Found), activamos nuestro estado.
-    if (error && error.status === 404) {
-      businessNotFound.value = true;
-    }
-    // Para cualquier otro error, podrías tener otro estado si quisieras (ej. serverError = true)
-  } finally {
-    isLoading.value = false;
+const props = defineProps({
+  userId: {
+    type: String,
+    required: true,
+  },
+  businessId: {
+    type: String,
+    required: true,
   }
 });
 
-const isAlreadySubmitted = computed(() => {
-  if (!businessData.value) return false;
-  const data = businessData.value;
-  const hasTextFields = data.instagram && data.tiktok && data.empleados && data.objetivoIdeal;
-  const hasFilePaths = data.menuRestaurantePath || data.costoPorPlatoPath || data.ventasMovimientosPath || data.ventasProductosPath || data.ventasClientePath;
-  return !!(hasTextFields && hasFilePaths);
-});
+const { userId, businessId } = toRefs(props);
+
+const {
+  isLoading,
+  businessData,
+  businessNotFound,
+  serverError,
+  isAlreadySubmitted
+} = useBusinessOnboarding(userId, businessId);
 </script>
 
 <template>
   <div class="onboarding-page-wrapper">
-    <div v-if="isLoading" class="loading-overlay">
-      <p>Verificando información...</p>
-    </div>
-    <NotFound v-else-if="businessNotFound" />
-    <main v-else class="main-content">
-      <HeroSection />
-      <VideoSection />
-      <CallToAction :is-already-submitted="isAlreadySubmitted" />
-    </main>
+    <PageFeedback
+      :is-loading="isLoading"
+      :is-not-found="businessNotFound"
+      :error-message="serverError! || ''"
+      loading-text="Verificando información..."
+    >
+      <main v-if="businessData" class="main-content">
+        <OnboardingActionBar
+          :is-submitted="isAlreadySubmitted"
+          :scheduling-url="CALENDLY_LINK"
+          cta-target-id="comenzar"
+        />
+
+        <HeroSection
+          quote="Juntos analizaremos los datos y estrategias de tu negocio para que empieces a crecer con control y previsión."
+          status="Tu pago ha sido exitosamente procesado"
+        >
+          <template #title>
+            <span class="hero-title-gradient">¡Gracias por unirte</span> a nosotros!
+          </template>
+          <template #subtitle>
+            Estamos entusiasmados de empezar a trabajar contigo para llevar tu negocio al siguiente nivel.
+          </template>
+        </HeroSection>
+
+        <BusinessInfoDisplay :business="businessData" />
+
+        <VideoSection
+          title="Video Explicativo"
+          description="A continuación podrás ver un video que explica en detalle cómo optimizaremos tu negocio y los resultados que podemos lograr juntos."
+          video-url="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        />
+
+        <CallToAction
+          id="comenzar"
+          :is-already-submitted="isAlreadySubmitted"
+          :scheduling-url="CALENDLY_LINK"
+        />
+      </main>
+
+      <template #not-found>
+        <NotFound />
+      </template>
+    </PageFeedback>
   </div>
 </template>
 
 <style lang="scss" scoped>
+/* Los estilos de onBoarding.vue no necesitan cambios. */
 @use '@/styles/index.scss' as *;
 
 .onboarding-page-wrapper {
@@ -84,15 +96,23 @@ const isAlreadySubmitted = computed(() => {
 
 .main-content {
   flex-grow: 1;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-.loading-overlay {
-  display: flex;
-  flex-grow: 1;
-  align-items: center;
-  justify-content: center;
-  font-family: $font-principal;
-  font-size: 1.5rem;
-  color: $BAKANO-DARK;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+:deep(.hero-title-gradient) {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, $BAKANO-PINK, $BAKANO-PURPLE);
 }
 </style>
