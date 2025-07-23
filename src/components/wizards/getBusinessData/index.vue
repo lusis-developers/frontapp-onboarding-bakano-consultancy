@@ -109,7 +109,6 @@ const finalSubmit = handleSubmit(async (formData) => {
   }
 });
 
-// 👇 4. AÑADIR Step5 al mapa de componentes
 const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
@@ -405,7 +404,6 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
 }
 
 .submitted-content-wrapper {
-  /* Estilos para tu SubmittedMessage.vue */
   text-align: center;
   padding: 2rem 0;
 }

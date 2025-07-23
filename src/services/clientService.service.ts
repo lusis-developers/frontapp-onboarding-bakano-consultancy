@@ -8,8 +8,16 @@ class ClientService extends APIBase {
     return this.get<{ client: Client }>(`client/${clientId}/business/${businessId}`)
   }
 
-  async getClientMeetingStatus(clientId: string): Promise<AxiosResponse<IMeetingStatusResponse>> {
-    return this.get<IMeetingStatusResponse>(`clients/${clientId}/meeting-status`)
+  public async getClientMeetingStatus(
+    clientId: string,
+    businessId?: string,
+  ): Promise<AxiosResponse<IMeetingStatusResponse>> {
+    let url = `clients/${clientId}/meeting-status`
+
+    if (businessId) {
+      url += `?businessId=${businessId}`
+    }
+    return this.get<IMeetingStatusResponse>(url)
   }
 }
 

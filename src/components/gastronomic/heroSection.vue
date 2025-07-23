@@ -1,5 +1,16 @@
 <script setup lang="ts">
-
+// Ahora el componente acepta props para la información secundaria,
+// haciéndolo aún más reutilizable.
+const props = defineProps({
+  quote: {
+    type: String,
+    default: '',
+  },
+  status: {
+    type: String,
+    default: '',
+  }
+});
 </script>
 
 <template>
@@ -7,30 +18,31 @@
     <div class="hero-container">
       <div class="text-content">
         <h1 class="hero-title">
-          <span class="hero-title-gradient">¡Gracias por unirte</span> a nosotros!
+          <slot name="title">
+            Título por Defecto
+          </slot>
         </h1>
         <p class="hero-subtitle">
-          Estamos entusiasmados de empezar a trabajar contigo para llevar tu negocio al siguiente nivel.
+          <slot name="subtitle">
+            Subtítulo por defecto.
+          </slot>
         </p>
       </div>
 
-      <div class="additional-info">
-        <p class="quote">
-          "Juntos analizaremos los datos y estrategias de tu negocio para que empieces a crecer con control y previsión."
-        </p>
-        <p class="payment-status">Tu pago ha sido exitosamente procesado</p>
+      <div v-if="props.quote || props.status" class="additional-info">
+        <p v-if="props.quote" class="quote">"{{ props.quote }}"</p>
+        <p v-if="props.status" class="payment-status">{{ props.status }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+/* Tus estilos aquí se mantienen igual, ya estaban muy bien. */
 @use '@/styles/index.scss' as *;
-
 
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
-
 
 @keyframes fadeIn {
   from {
@@ -52,7 +64,6 @@ $breakpoint-lg: 1024px;
   justify-content: center;
   overflow: hidden;
   background-color: $white;
-
   padding: 4rem 1.5rem;
 
   @media (min-width: $breakpoint-md) {
@@ -63,8 +74,7 @@ $breakpoint-lg: 1024px;
 .hero-container {
   width: 100%;
   max-width: 1152px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   position: relative;
   z-index: 10;
   animation: fadeIn 0.7s ease-out forwards;
@@ -90,26 +100,14 @@ $breakpoint-lg: 1024px;
   @media (min-width: $breakpoint-lg) {
     font-size: 3.75rem;
   }
-
-  .hero-title-gradient {
-
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-
-    background-image: linear-gradient(to right, $BAKANO-PINK, $BAKANO-PURPLE);
-  }
 }
 
 .hero-subtitle {
   font-family: $font-secondary;
   font-size: 1.25rem;
   color: mix($BAKANO-DARK, $white, 70%);
-
   max-width: 48rem;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem;
   line-height: 1.6;
 
   @media (min-width: $breakpoint-md) {
@@ -124,8 +122,6 @@ $breakpoint-lg: 1024px;
 
 .quote {
   font-family: $font-secondary;
-
-
   color: mix($BAKANO-DARK, $white, 55%);
   font-style: italic;
   font-size: 1.1rem;

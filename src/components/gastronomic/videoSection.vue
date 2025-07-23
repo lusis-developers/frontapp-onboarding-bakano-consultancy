@@ -1,23 +1,31 @@
 <script setup lang="ts">
-// No se necesita lógica de script específica para este componente
-// basado en la plantilla proporcionada.
+const props = defineProps({
+  title: {
+    type: String,
+    default: 'Título del Video'
+  },
+  description: {
+    type: String,
+    default: 'Descripción del video.'
+  },
+  videoUrl: {
+    type: String,
+    required: true,
+  }
+});
 </script>
 
 <template>
   <section class="video-section">
     <div class="video-container">
-      <h2 class="video-title">
-        Video Explicativo
-      </h2>
-      <p class="video-description">
-        A continuación podrás ver un video que explica en detalle cómo optimizaremos tu negocio y los resultados que podemos lograr juntos.
-      </p>
+      <h2 class="video-title">{{ props.title }}</h2>
+      <p class="video-description">{{ props.description }}</p>
 
-      <div class="video-embed-wrapper">
+      <div v-if="props.videoUrl" class="video-embed-wrapper">
         <iframe
           class="video-iframe"
-          src="https://www.youtube.com/embed/P1-0NIUsg2U"
-          title="Video Explicativo Bakano"
+          :src="props.videoUrl"
+          :title="props.title"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
         ></iframe>
@@ -29,79 +37,70 @@
 <style lang="scss" scoped>
 @use '@/styles/index.scss' as *;
 
-$text-gray-600: #718096;
-
-// Breakpoints (consistente con los componentes anteriores)
-$breakpoint-md: 768px;
-
 .video-section {
-  // Efecto de 'section-padding'
-  padding: 3rem 1rem;
+  padding: 3rem 1rem; // Reducimos el padding vertical para un look más compacto
+  background-color: $white;
 
-  @media (min-width: $breakpoint-md) {
-    padding: 5rem 1rem;
+  @media (min-width: 768px) {
+    padding: 4.5rem 1.5rem;
   }
 }
 
 .video-container {
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  max-width: 1152px;
+  max-width: 960px; // Ligeramente más estrecho para centrar la atención
+  margin: 0 auto;
+  text-align: center;
 }
 
+// --- Textos (Título y Descripción) ---
 .video-title {
   font-family: $font-principal;
-  font-weight: 700; // 'font-bold'
+  font-weight: 700;
   color: $BAKANO-DARK;
-  text-align: center;
-  margin-bottom: 1.5rem; // 'mb-6'
-  font-size: 1.875rem; // 'text-2xl'
+  font-size: clamp(1.5rem, 4vw, 1.8rem); // Tipografía fluida y más contenida
   line-height: 1.3;
-
-  @media (min-width: $breakpoint-md) {
-    font-size: 2.25rem; // 'md:text-3xl'
-  }
+  margin-bottom: 0.75rem;
 }
 
 .video-description {
   font-family: $font-secondary;
-  color: $text-gray-600;
-  text-align: center;
-  margin-bottom: 2rem; // 'mb-8'
-  max-width: 672px; // 'max-w-2xl' (42rem)
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  color: rgba($BAKANO-DARK, 0.7);
+  max-width: 600px; // Más estrecho para mejorar la legibilidad
+  margin: 0 auto 2.5rem auto;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  line-height: 1.7;
 }
 
+// --- Contenedor del Video ---
 .video-embed-wrapper {
-  max-width: 896px; // 'max-w-4xl' (56rem)
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 3rem; // 'mb-12'
-
-  // Para mantener la relación de aspecto 16:9 ('aspect-video')
+  max-width: 896px;
+  margin: 0 auto;
   position: relative;
-  padding-top: 56.25%; // (alto / ancho * 100) => (9 / 16 * 100)
-  height: 0; // El padding-top crea la altura
-  overflow: hidden; // Esencial para que el border-radius se aplique correctamente al contenido del iframe
 
-  // Estilos que estaban en el iframe directamente, ahora en el wrapper
-  border-radius: 0.5rem; // 'rounded-lg' de Tailwind (0.5rem)
-  // 'shadow-md' de Tailwind: box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  // Mantenemos el aspect-ratio, es una técnica excelente.
+  padding-top: 56.25%;
+  /* 16:9 Aspect Ratio */
+  height: 0;
+  overflow: hidden;
 
+  // Sombra más sutil y borde para un acabado premium.
+  border-radius: 12px;
+  border: 1px solid #eef0f3;
+  box-shadow: 0 8px 30px rgba(48, 55, 120, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(48, 55, 120, 0.12);
+  }
 
   .video-iframe {
-    // El iframe ocupa todo el espacio del wrapper
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    border: 0; // Elimina el borde por defecto del iframe
+    border: 0;
   }
 }
 </style>

@@ -1,17 +1,17 @@
 <script setup lang="ts">
-// Paso 1: Cambiamos los imports. Adiós a Field, ErrorMessage, useField y watch.
+import CurrencyInput from '@/forms/CurrencyInput.vue';
 import { computed, defineProps, defineEmits } from 'vue';
 
-// Paso 2: Definimos las props que vienen del padre.
+// --- Props y Emits ---
+// La estructura de comunicación con el padre (OnboardingFormWizard) se mantiene.
+// Es robusta y está bien diseñada.
 const props = defineProps<{
   values: Record<string, any>;
   errors: Record<string, string | undefined>;
 }>();
-
-// Paso 3: Definimos el evento para comunicarnos con el padre.
 const emit = defineEmits(['update:form-value']);
 
-// Mantenemos las opciones estáticas para el <select>.
+// --- Opciones para el Select ---
 const desafioOptions = [
   { value: "aumentar_clientes", label: "Aumentar el número de clientes" },
   { value: "aumentar_ingreso", label: "Aumentar el ingreso por Punto de venta" },
@@ -20,8 +20,9 @@ const desafioOptions = [
   { value: "operaciones", label: "Protocolos de operaciones (administrativas, logística, inventario)" },
 ];
 
-// Paso 4: Creamos las propiedades computadas para CADA campo del formulario.
-// Esta es la clave para la reactividad bidireccional.
+// --- Modelo de Datos Reactivo ---
+// Las propiedades computadas con get/set son la forma ideal de manejar el v-model
+// con un estado que vive en el componente padre. No se necesita ningún cambio aquí.
 const ingresoMensual = computed({
   get: () => props.values.ingresoMensual,
   set: (val) => emit('update:form-value', 'ingresoMensual', val),
@@ -46,37 +47,23 @@ const desafioPrincipal = computed({
   get: () => props.values.desafioPrincipal,
   set: (val) => emit('update:form-value', 'desafioPrincipal', val),
 });
-
 </script>
 
 <template>
   <div class="form-step">
-    <div class="form-field">
-      <label for="ingresoMensual" class="form-label">Ingreso mensual promedio*</label>
-      <input
-        v-model="ingresoMensual"
-        id="ingresoMensual"
-        type="number"
-        placeholder="$"
-        class="form-input"
-        :class="{ 'input-error': !!props.errors.ingresoMensual }"
-      />
-      <span v-if="props.errors.ingresoMensual" class="error-text">{{ props.errors.ingresoMensual }}</span>
-    </div>
+    <CurrencyInput
+      v-model="ingresoMensual"
+      label="Ingreso mensual promedio (USD)"
+      :error="props.errors.ingresoMensual"
+      required
+    />
 
-    <div class="form-field">
-      <label for="ingresoAnual" class="form-label">Ingreso anual*</label>
-      <input
-        v-model="ingresoAnual"
-        id="ingresoAnual"
-        type="number"
-        placeholder="$"
-        class="form-input"
-        :class="{ 'input-error': !!props.errors.ingresoAnual }"
-      />
-      <span v-if="props.errors.ingresoAnual" class="error-text">{{ props.errors.ingresoAnual }}</span>
-    </div>
-
+    <CurrencyInput
+      v-model="ingresoAnual"
+      label="Ingreso anual (USD)"
+      :error="props.errors.ingresoAnual"
+      required
+    />
     <div class="form-field form-field-checkbox">
       <input
         v-model="vendePorWhatsapp"
@@ -88,19 +75,12 @@ const desafioPrincipal = computed({
     </div>
     <span v-if="props.errors.vendePorWhatsapp" class="error-text">{{ props.errors.vendePorWhatsapp }}</span>
 
-    <div v-if="vendePorWhatsapp" class="form-field">
-      <label for="gananciaWhatsapp" class="form-label">¿Cuánto ganas por WhatsApp? (mensual estimado)</label>
-      <input
-        v-model="gananciaWhatsapp"
-        id="gananciaWhatsapp"
-        type="text"
-        placeholder="$"
-        class="form-input"
-        :class="{ 'input-error': !!props.errors.gananciaWhatsapp }"
-      />
-      <span v-if="props.errors.gananciaWhatsapp" class="error-text">{{ props.errors.gananciaWhatsapp }}</span>
-    </div>
-
+    <CurrencyInput
+      v-if="vendePorWhatsapp"
+      v-model="gananciaWhatsapp"
+      label="¿Cuánto ganas por WhatsApp? (mensual estimado en USD)"
+      :error="props.errors.gananciaWhatsapp"
+    />
     <div class="form-field">
       <label for="desafioPrincipal" class="form-label">Desafío principal*</label>
       <select
@@ -139,6 +119,7 @@ const desafioPrincipal = computed({
   font-weight: 500;
   color: $BAKANO-DARK;
   font-size: 0.9rem;
+  text-align: left;
   margin-bottom: 0.25rem;
 }
 
@@ -146,7 +127,7 @@ const desafioPrincipal = computed({
 .form-select {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
-  border: 1px solid $BAKANO-LIGHT;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
   color: $BAKANO-DARK;
@@ -154,7 +135,7 @@ const desafioPrincipal = computed({
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 
   &::placeholder {
-    color: $text-placeholder;
+    color: #9ca3af;
   }
 
   &:focus {
@@ -174,7 +155,7 @@ const desafioPrincipal = computed({
 
 .form-select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor' class='w-5 h-5'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd' /%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd' /%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1.25em;
@@ -185,13 +166,14 @@ const desafioPrincipal = computed({
   flex-direction: row;
   align-items: center;
   gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .form-checkbox {
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: 8px;
-  border: 2px solid rgba($BAKANO-DARK, 0.3);
+  border-radius: 4px;
+  border: 2px solid #cbd5e1;
   cursor: pointer;
   appearance: none;
   position: relative;
@@ -223,13 +205,14 @@ const desafioPrincipal = computed({
 .form-label-checkbox {
   margin-bottom: 0;
   cursor: pointer;
-  font-weight: normal;
-  color: $text-placeholder;
+  font-weight: 500;
+  color: $BAKANO-DARK;
 }
 
 .error-text {
   font-size: 0.8rem;
   color: $BAKANO-PINK;
   margin-top: 0.1rem;
+  text-align: left;
 }
 </style>
