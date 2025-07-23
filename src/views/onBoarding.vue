@@ -1,15 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-// 1. IMPORTAMOS useRoute DE VUE ROUTER
+// ... (el resto del script no cambia)
+import { computed, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-
-// --- Composables ---
 import { useBusinessOnboarding } from '@/composables/useBusinessOnboarding';
-
-// --- Constantes ---
 import { CALENDLY_LINK } from '@/constants/links.contant';
-
-// --- Componentes ---
 import OnboardingFormWizard from '@/components/wizards/OnboardingFormWizard.vue';
 import MeetingScheduler from '@/components/gastronomic/MeetingScheduler.vue';
 import HeroSection from '@/components/gastronomic/heroSection.vue';
@@ -19,18 +13,14 @@ import OnboardingActionBar from '@/components/shared/OnboardingActionBar.vue';
 import PageFeedback from '@/components/shared/PageFeedback.vue';
 import NotFound from '@/views/notFound.vue';
 
-// --- Lógica del Componente ---
 
-// 2. OBTENEMOS LOS PARÁMETROS DIRECTAMENTE DE LA RUTA
-// Este método es más robusto que depender de props inyectadas por el router.
 const route = useRoute();
 const routeParams = computed(() => ({
   userId: route.params.userId as string,
   businessId: route.params.businessId as string,
 }));
+const originalTitle = document.title;
 
-// 3. PASAMOS LOS PARÁMETROS OBTENIDOS AL COMPOSABLE
-// Ahora estamos 100% seguros de que los IDs son correctos.
 const {
   isLoading,
   businessData,
@@ -43,6 +33,18 @@ const {
 const handleFormCompletion = async () => {
   await refetch();
 };
+
+watch(businessData, (newBusinessData) => {
+  if (newBusinessData && newBusinessData.name) {
+    document.title = `Bienvenido, ${newBusinessData.name} | Bakano`;
+  } else {
+    document.title = originalTitle;
+  }
+});
+
+onUnmounted(() => {
+  document.title = originalTitle
+})
 </script>
 
 <template>
@@ -80,7 +82,12 @@ const handleFormCompletion = async () => {
             video-url="https://www.youtube.com/embed/dQw4w9WgXcQ"
           />
 
-          <MeetingScheduler id="scheduler" :client-id="routeParams.userId" />
+          <MeetingScheduler
+            id="scheduler"
+            :client-id="routeParams.userId"
+            :business-id="routeParams.businessId"
+          />
+
         </div>
 
         <div v-else class="wizard-view">

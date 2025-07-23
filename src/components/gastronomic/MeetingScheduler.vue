@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-
-// --- Dependencias ---
 import { clientService } from '@/services/clientService.service';
 import { MeetingStatus, MeetingType } from '@/anums/meetingStatus.enum';
 import {
@@ -9,39 +7,34 @@ import {
   DATA_STRATEGY_MEETING_URL,
   CALENDLY_LINK
 } from '@/constants/links.contant';
-import type { IMeetingStatusResponse, IMeetingDetails } from '@/types/responses/IMeetingStatusResponse';
+import type { IMeetingStatusResponse } from '@/types/responses/IMeetingStatusResponse';
 
-// --- Props ---
 const props = defineProps<{
   clientId: string;
+  businessId: string;
 }>();
 
-// --- Estado Reactivo Interno ---
 const isLoading = ref(true);
 const apiResponse = ref<IMeetingStatusResponse | null>(null);
 const error = ref<string | null>(null);
 
-// --- Lógica de Obtención de Datos ---
 onMounted(async () => {
-  if (!props.clientId) {
-    error.value = "Error: No se pudo identificar al cliente.";
+  if (!props.clientId || !props.businessId) {
+    error.value = "Error: No se pudo identificar al cliente o al negocio.";
     isLoading.value = false;
     return;
   }
   try {
-    const response = await clientService.getClientMeetingStatus(props.clientId);
+    const response = await clientService.getClientMeetingStatus(props.clientId, props.businessId);
     apiResponse.value = response.data;
   } catch (err) {
-    console.error("Error fetching meeting status:", err);
+    console.error("Error fetching meeting status for business:", err);
     error.value = "No se pudo cargar el estado de tus reuniones.";
   } finally {
     isLoading.value = false;
   }
 });
 
-// --- Lógica de Negocio y Formato ---
-
-// Helper para traducir estados a texto legible y profesional.
 const statusToTextMap: Record<string, string> = {
   [MeetingStatus.PENDING_SCHEDULE]: 'Pendiente de Agendar',
   [MeetingStatus.SCHEDULED]: 'Agendada',
@@ -50,7 +43,6 @@ const statusToTextMap: Record<string, string> = {
   [MeetingStatus.NO_SHOW]: 'No Asistió',
 };
 
-// Helpers para formatear fecha y hora para la zona horaria de Ecuador.
 const formatDate = (dateString?: string) => {
   if (!dateString) return '';
   return new Intl.DateTimeFormat('es-EC', { dateStyle: 'full' }).format(new Date(dateString));
@@ -60,29 +52,41 @@ const formatTime = (dateString?: string) => {
   return new Intl.DateTimeFormat('es-EC', { timeStyle: 'short', hour12: true, timeZone: 'America/Guayaquil' }).format(new Date(dateString));
 };
 
-// Computeds que derivan el estado de cada reunión a partir de la respuesta de la API.
+const baseMeetingState = {
+  status: MeetingStatus.PENDING_SCHEDULE,
+  statusText: statusToTextMap[MeetingStatus.PENDING_SCHEDULE],
+  scheduledTime: undefined,
+  meetingLink: undefined,
+};
+
 const marketingMeeting = computed(() => {
-  let meetingDetails: Partial<IMeetingDetails> = { status: MeetingStatus.PENDING_SCHEDULE };
-  if (apiResponse.value?.meeting?.meetingType === MeetingType.PORTFOLIO_ACCESS) {
-    meetingDetails = apiResponse.value.meeting;
-  } else if (apiResponse.value?.meeting?.meetingType === MeetingType.DATA_STRATEGY) {
-    meetingDetails.status = MeetingStatus.COMPLETED;
+  if (!apiResponse.value?.hasScheduledMeeting) {
+    return baseMeetingState;
   }
+  const meeting = apiResponse.value.meeting!;
+
+  if (meeting.meetingType === MeetingType.PORTFOLIO_ACCESS) {
+    return { ...meeting, statusText: statusToTextMap[meeting.status] || meeting.status };
+  }
+
   return {
-    ...meetingDetails,
-    statusText: statusToTextMap[meetingDetails.status!] || meetingDetails.status,
+    ...baseMeetingState,
+    status: MeetingStatus.COMPLETED,
+    statusText: statusToTextMap[MeetingStatus.COMPLETED]
   };
 });
 
 const dataStrategyMeeting = computed(() => {
-  let meetingDetails: Partial<IMeetingDetails> = { status: MeetingStatus.PENDING_SCHEDULE };
-  if (apiResponse.value?.meeting?.meetingType === MeetingType.DATA_STRATEGY) {
-    meetingDetails = apiResponse.value.meeting;
+  if (!apiResponse.value?.hasScheduledMeeting) {
+    return baseMeetingState;
   }
-  return {
-    ...meetingDetails,
-    statusText: statusToTextMap[meetingDetails.status!] || meetingDetails.status,
-  };
+  const meeting = apiResponse.value.meeting!;
+
+  if (meeting.meetingType === MeetingType.DATA_STRATEGY) {
+    return { ...meeting, statusText: statusToTextMap[meeting.status] || meeting.status };
+  }
+
+  return baseMeetingState;
 });
 
 const isDataStrategyMeetingUnlocked = computed(() => {
