@@ -57,11 +57,11 @@ onUnmounted(() => {
     >
       <main v-if="businessData" class="main-content">
         <div v-if="isAlreadySubmitted" class="confirmation-view">
-          <OnboardingActionBar
+          <!-- <OnboardingActionBar
             :is-submitted="isAlreadySubmitted"
             :scheduling-url="CALENDLY_LINK"
             cta-target-id="scheduler"
-          />
+          /> -->
           <HeroSection
             quote="Juntos analizaremos los datos y estrategias de tu negocio para que empieces a crecer con control y previsión."
             status="Tu pago ha sido exitosamente procesado"
