@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+
 const props = defineProps({
   title: {
     type: String,
@@ -8,9 +10,33 @@ const props = defineProps({
     type: String,
     default: 'Descripción del video.'
   },
-  videoUrl: {
+  mediaId: {
     type: String,
     required: true,
+  },
+  aspectRatio: {
+    type: Number,
+    default: 1.7777777777777777 // 16:9
+  }
+});
+
+// Cargar scripts de Wistia dinámicamente
+onMounted(() => {
+  // Cargar el player principal de Wistia
+  if (!document.querySelector('script[src="https://fast.wistia.com/player.js"]')) {
+    const playerScript = document.createElement('script');
+    playerScript.src = 'https://fast.wistia.com/player.js';
+    playerScript.async = true;
+    document.head.appendChild(playerScript);
+  }
+  
+  // Cargar el script específico del video
+  if (!document.querySelector(`script[src="https://fast.wistia.com/embed/${props.mediaId}.js"]`)) {
+    const embedScript = document.createElement('script');
+    embedScript.src = `https://fast.wistia.com/embed/${props.mediaId}.js`;
+    embedScript.async = true;
+    embedScript.type = 'module';
+    document.head.appendChild(embedScript);
   }
 });
 </script>
@@ -21,14 +47,12 @@ const props = defineProps({
       <h2 class="video-title">{{ props.title }}</h2>
       <p class="video-description">{{ props.description }}</p>
 
-      <div v-if="props.videoUrl" class="video-embed-wrapper">
-        <iframe
-          class="video-iframe"
-          :src="props.videoUrl"
-          :title="props.title"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-        ></iframe>
+      <div v-if="props.mediaId" class="video-embed-wrapper">
+        <wistia-player 
+          :media-id="props.mediaId" 
+          :aspect="props.aspectRatio"
+          class="wistia-player"
+        ></wistia-player>
       </div>
     </div>
   </section>
@@ -77,30 +101,31 @@ const props = defineProps({
   margin: 0 auto;
   position: relative;
 
-  // Mantenemos el aspect-ratio, es una técnica excelente.
-  padding-top: 56.25%;
-  /* 16:9 Aspect Ratio */
-  height: 0;
-  overflow: hidden;
-
   // Sombra más sutil y borde para un acabado premium.
   border-radius: 12px;
   border: 1px solid #eef0f3;
   box-shadow: 0 8px 30px rgba(48, 55, 120, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 35px rgba(48, 55, 120, 0.12);
   }
 
-  .video-iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
+  .wistia-player {
     width: 100%;
-    height: 100%;
-    border: 0;
+    height: auto;
+    display: block;
+    
+    // Estilo para el estado de carga con blur
+    &:not(:defined) {
+      background: center / contain no-repeat url('https://fast.wistia.com/embed/medias/lpxrybfuh8/swatch');
+      display: block;
+      filter: blur(5px);
+      padding-top: 56.25%; // 16:9 aspect ratio
+      background-color: #f8f9fa;
+    }
   }
 }
 </style>
