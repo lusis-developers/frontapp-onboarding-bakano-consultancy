@@ -10,7 +10,12 @@ const props = defineProps({
 });
 
 // Función de utilidad para verificar si un documento fue cargado
-const hasDocument = (path: string | undefined): boolean => !!path;
+const hasDocument = (path: string | string[] | undefined): boolean => {
+  if (Array.isArray(path)) {
+    return path.length > 0 && path.some(p => !!p);
+  }
+  return !!path;
+};
 
 // Estructura de datos para renderizar fácilmente la lista de documentos
 const documents = [
