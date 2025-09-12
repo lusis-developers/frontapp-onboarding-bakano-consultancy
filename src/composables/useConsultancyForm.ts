@@ -33,6 +33,13 @@ const baseSchema = z.object({
   ventasMovimientos: z.instanceof(File).optional(),
   ventasProductos: z.instanceof(File).optional(),
   ventasCliente: z.instanceof(File).optional(),
+  // Campos de identidad de marca
+  brandPrimaryColor: z.string().optional(),
+  brandSecondaryColor: z.string().optional(),
+  brandTypographyName: z.string().optional(),
+  brandLogo: z.instanceof(File).optional(),
+  brandTypographyFile: z.instanceof(File).optional(),
+  brandUsageExamples: z.instanceof(File).optional(),
   acceptsPolicies: z.boolean().refine((val) => val === true, {
     message: 'Debes aceptar las políticas para continuar.',
   }),
@@ -47,6 +54,9 @@ export function useConsultancyForm() {
     ventasMovimientos: false,
     ventasProductos: false,
     ventasCliente: false,
+    brandLogo: false,
+    brandTypographyFile: false,
+    brandUsageExamples: false,
   })
   const menuRestauranteFiles = ref<FileStatus[]>([])
   const singleFileStatuses = ref<Record<string, FileStatus | null>>({
@@ -54,6 +64,9 @@ export function useConsultancyForm() {
     ventasMovimientos: null,
     ventasProductos: null,
     ventasCliente: null,
+    brandLogo: null,
+    brandTypographyFile: null,
+    brandUsageExamples: null,
   })
 
   // --- ESQUEMA COMPLETO ---
@@ -97,6 +110,9 @@ export function useConsultancyForm() {
       objetivoIdeal: '',
       acceptsPolicies: false,
       menuRestaurante: [],
+      brandPrimaryColor: '',
+      brandSecondaryColor: '',
+      brandTypographyName: '',
     },
   })
 

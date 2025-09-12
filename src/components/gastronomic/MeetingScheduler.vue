@@ -8,6 +8,8 @@ import {
   CALENDLY_LINK
 } from '@/constants/links.contant';
 import type { IMeetingStatusResponse } from '@/types/responses/IMeetingStatusResponse';
+import { useChecklistStore } from '@/stores/checklist';
+import { OnboardingPhase } from '@/types/checklist';
 
 const props = defineProps<{
   clientId: string;
@@ -18,6 +20,9 @@ const isLoading = ref(true);
 const apiResponse = ref<IMeetingStatusResponse | null>(null);
 const error = ref<string | null>(null);
 
+// Store de checklist para verificar el progreso
+const checklistStore = useChecklistStore();
+
 onMounted(async () => {
   if (!props.clientId || !props.businessId) {
     error.value = "Error: No se pudo identificar al cliente o al negocio.";
@@ -25,8 +30,12 @@ onMounted(async () => {
     return;
   }
   try {
-    const response = await clientService.getClientMeetingStatus(props.clientId, props.businessId);
-    apiResponse.value = response.data;
+    // Cargar estado de reuniones y progreso del checklist en paralelo
+    const [meetingResponse] = await Promise.all([
+      clientService.getClientMeetingStatus(props.clientId, props.businessId),
+      checklistStore.fetchProgress(props.businessId)
+    ]);
+    apiResponse.value = meetingResponse.data;
   } catch (err) {
     console.error("Error fetching meeting status for business:", err);
     error.value = "No se pudo cargar el estado de tus reuniones.";
@@ -90,7 +99,16 @@ const dataStrategyMeeting = computed(() => {
 });
 
 const isDataStrategyMeetingUnlocked = computed(() => {
-  return marketingMeeting.value.status === MeetingStatus.COMPLETED;
+  // Verificar si la reunión de marketing está completada
+  const marketingCompleted = marketingMeeting.value.status === MeetingStatus.COMPLETED;
+  
+  // Verificar si el progreso del checklist indica que estamos en análisis de datos o más avanzado
+  const checklistProgress = checklistStore.progress;
+  const isInDataAnalysisPhase = checklistProgress && 
+    checklistProgress.currentPhase >= OnboardingPhase.STRATEGY_FUNNEL_DESIGN;
+  
+  // Habilitar si la reunión de marketing está completada O si estamos en fase de análisis de datos
+  return marketingCompleted || isInDataAnalysisPhase;
 });
 
 const handleLockedClick = (event: MouseEvent) => {
@@ -98,6 +116,18 @@ const handleLockedClick = (event: MouseEvent) => {
     event.preventDefault();
   }
 };
+
+// Computed para mostrar información del progreso del checklist
+const checklistInfo = computed(() => {
+  const progress = checklistStore.progress;
+  if (!progress) return null;
+  
+  return {
+    currentPhaseName: progress.currentPhaseName,
+    overallProgress: progress.overallProgress,
+    isInDataPhase: progress.currentPhase >= OnboardingPhase.STRATEGY_FUNNEL_DESIGN
+  };
+});
 </script>
 
 <template>
@@ -159,11 +189,24 @@ const handleLockedClick = (event: MouseEvent) => {
                <a class="action-button primary is-disabled" @click="handleLockedClick">
                 <span class="lock-icon">🔒</span> Bloqueado
               </a>
+              <div class="unlock-info">
+                <p><strong>Para desbloquear:</strong> Completa la reunión de marketing o avanza en tu proceso de onboarding.</p>
+                <div v-if="checklistInfo" class="progress-info">
+                  <p><strong>Progreso actual:</strong> {{ checklistInfo.currentPhaseName }} ({{ checklistInfo.overallProgress }}%)</p>
+                </div>
+              </div>
             </template>
 
             <template v-else>
               <div v-if="dataStrategyMeeting.status === MeetingStatus.PENDING_SCHEDULE">
                 <div class="status-badge pending-schedule">Estado: Pendiente de Agendar</div>
+                
+                <!-- Mostrar notificación especial si se habilitó por progreso del checklist -->
+                <div v-if="checklistInfo?.isInDataPhase && marketingMeeting.status !== MeetingStatus.COMPLETED" class="checklist-unlock-notice">
+                  <p>🎉 <strong>¡Reunión desbloqueada por tu progreso!</strong></p>
+                  <p>Has avanzado a la fase de {{ checklistInfo.currentPhaseName }}, por lo que ya puedes agendar tu sesión de análisis de datos.</p>
+                </div>
+                
                 <a :href="DATA_STRATEGY_MEETING_URL" target="_blank" rel="noopener noreferrer" class="action-button primary">
                   Agendar con Luis Reyes
                 </a>
@@ -451,5 +494,49 @@ const handleLockedClick = (event: MouseEvent) => {
   gap: 0.5rem;
   margin-top: 1rem;
   font-size: 0.95rem;
+}
+
+.unlock-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #fef3c7;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  font-size: 0.9rem;
+  
+  p {
+    margin: 0;
+    color: #92400e;
+    line-height: 1.5;
+    
+    &:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.progress-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+}
+
+.checklist-unlock-notice {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border-radius: 8px;
+  border-left: 4px solid #10b981;
+  
+  p {
+    margin: 0;
+    color: #065f46;
+    line-height: 1.5;
+    
+    &:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+  }
 }
 </style>

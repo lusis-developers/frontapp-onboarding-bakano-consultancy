@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { consultancyService } from '@/services/consultancyService';
 import { useConsultancyForm } from '@/composables/useConsultancyForm';
+import { useBusinessStore } from '@/stores/business';
 
 // --- COMPONENTES DEL WIZARD ---
 // Importamos los componentes de cada paso del formulario.
@@ -11,6 +12,7 @@ import Step2 from './getBusinessData/step2.vue';
 import Step3 from './getBusinessData/step3.vue';
 import Step4 from './getBusinessData/step4.vue'; // Asumimos que este es el paso de subida de archivos
 import Step5 from './getBusinessData/step5.vue';
+import Step6 from './getBusinessData/step6.vue';
 
 // --- EMITS ---
 // El componente ahora notifica al padre ('onBoarding.vue') cuando el proceso ha terminado.
@@ -18,13 +20,14 @@ const emit = defineEmits(['completed']);
 
 // --- ESTADO DEL WIZARD ---
 const currentStep = ref(1);
-const totalSteps = ref(5);
+const totalSteps = ref(6);
 const isLoading = ref(false);
 const submissionError = ref<string | null>(null);
 
 // --- LÓGICA DEL FORMULARIO (Composable) ---
 // Centralizamos toda la gestión de datos, validaciones y archivos en el composable.
 const route = useRoute();
+const businessStore = useBusinessStore();
 const businessId = computed(() => route.params.businessId as string);
 const {
   values, errors, skippedFiles, menuRestauranteFiles, singleFileStatuses,
@@ -45,7 +48,8 @@ const stepFields: Record<number, (keyof typeof values)[]> = {
   2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'],
   3: ['objetivoIdeal'],
   4: [], // La validación de archivos se maneja dentro del composable, no aquí.
-  5: ['acceptsPolicies']
+  5: ['acceptsPolicies'],
+  6: []
 };
 
 const nextStep = async () => {
@@ -84,15 +88,39 @@ const finalSubmit = handleSubmit(async (formData) => {
   if (!skippedFiles.value.menuRestaurante) {
     menuRestauranteFiles.value.forEach(status => dataToSend.append('menuRestaurante', status.file));
   }
-  Object.entries(singleFileStatuses.value).forEach(([fieldName, status]) => {
-    if (status && !skippedFiles.value[fieldName]) {
-      dataToSend.append(fieldName, status.file);
+  
+  // Agregar archivos individuales (incluyendo archivos de marca)
+  const singleFileFields = [
+    'costoPorPlato', 
+    'ventasMovimientos', 
+    'ventasProductos', 
+    'ventasCliente',
+    'brandLogo',
+    'brandTypographyFile',
+    'brandUsageExamples'
+  ];
+  singleFileFields.forEach((fieldName) => {
+    const fileStatus = singleFileStatuses.value[fieldName];
+    if (fileStatus?.file && !skippedFiles.value[fieldName]) {
+      dataToSend.append(fieldName, fileStatus.file);
     }
   });
 
   try {
     if (!businessId.value) throw new Error("ID del negocio no disponible. Por favor, recarga la página.");
+    
+    // Enviar formulario al servicio
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
+    
+    // Actualizar datos de marca en el store
+     if (formData.brandPrimaryColor || formData.brandSecondaryColor || formData.brandTypographyName) {
+       await businessStore.updateBusinessData(businessId.value, {
+         brandPrimaryColor: formData.brandPrimaryColor,
+         brandSecondaryColor: formData.brandSecondaryColor,
+         brandTypographyName: formData.brandTypographyName
+       });
+     }
+    
     emit('completed'); // Notificamos al padre que el proceso terminó con éxito.
   } catch (error: any) {
     submissionError.value = error.response?.data?.message || "Ocurrió un error inesperado al enviar tus datos. Por favor, inténtalo de nuevo.";
@@ -102,7 +130,7 @@ const finalSubmit = handleSubmit(async (formData) => {
 });
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5, 6: Step6 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
