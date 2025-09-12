@@ -79,7 +79,8 @@ onUnmounted(() => {
           <VideoSection
             title="Nuestra Estrategia, Siempre a tu Alcance"
             description="Sabemos que son muchos detalles. Si en algún momento olvidas los pasos que seguiremos para transformar tu negocio, este video es tu recordatorio."
-            video-url="https://bakano-1.wistia.com/medias/lpxrybfuh8"
+            media-id="lpxrybfuh8"
+            :aspect-ratio="1.7777777777777777"
           />
 
           <MeetingScheduler
