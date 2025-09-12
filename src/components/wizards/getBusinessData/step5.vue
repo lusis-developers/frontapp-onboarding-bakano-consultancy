@@ -101,7 +101,7 @@ const handlePolicyChange = (event: Event) => {
         <label for="acceptsPolicies" class="form-label-checkbox policy-label">
           He leído y acepto las
           <a
-            href="https://mkt.bakano.ec/politicas"
+            href="https://bakano.ec/politicas-privacidad"
             target="_blank"
             rel="noopener noreferrer"
             class="policy-link"
