@@ -6,7 +6,7 @@ export interface IManager {
   _id?: string // El ID será asignado por la BBDD
   name: string
   email: string
-  role: string
+  role?: string
 }
 
 export function useManagers(businessId: Ref<string>) {
