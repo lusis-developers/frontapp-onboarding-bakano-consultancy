@@ -8,13 +8,15 @@ import { useConsultancyForm } from '@/composables/useConsultancyForm';
 import Step1 from './getBusinessDataForServices/step1.vue';
 import Step2 from './getBusinessDataForServices/step2.vue';
 import Step3 from './getBusinessDataForServices/step3.vue';
+import Step4 from './getBusinessDataForServices/step4.vue'; // Identidad de marca
+import Step5 from './getBusinessData/step5.vue'; // Reutilizamos el Step5 existente
 
 // --- EMITS ---
 const emit = defineEmits(['completed']);
 
 // --- ESTADO DEL WIZARD ---
 const currentStep = ref(1);
-const totalSteps = ref(3);
+const totalSteps = ref(5);
 const isLoading = ref(false);
 const submissionError = ref<string | null>(null);
 
@@ -38,7 +40,9 @@ const prevStep = () => {
 const stepFields: Record<number, (keyof typeof values)[]> = {
   1: ['instagram', 'empleados'],
   2: ['ingresoMensual', 'ingresoAnual', 'desafioPrincipal', 'vendePorWhatsapp', 'gananciaWhatsapp'],
-  3: ['objetivoIdeal', 'serviceDescription']
+  3: ['objetivoIdeal', 'serviceDescription'],
+  4: [], // Step4 - Identidad de marca (todos los campos son opcionales)
+  5: ['acceptsPolicies'] // Step5 requiere aceptación de políticas
 };
 
 const nextStep = async () => {
@@ -90,7 +94,7 @@ const finalSubmit = handleSubmit(async (formData) => {
 });
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
