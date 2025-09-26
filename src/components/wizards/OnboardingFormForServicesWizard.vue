@@ -68,6 +68,10 @@ const nextStep = async () => {
 
 // --- ENVÍO FINAL DEL FORMULARIO ---
 const finalSubmit = handleSubmit(async (formData) => {
+  console.log('🚀 [DEBUG] finalSubmit ejecutado - Iniciando envío del formulario');
+  console.log('📋 [DEBUG] formData recibida:', formData);
+  console.log('🏢 [DEBUG] businessId:', businessId.value);
+  
   isLoading.value = true;
   submissionError.value = null;
 
@@ -76,22 +80,38 @@ const finalSubmit = handleSubmit(async (formData) => {
   Object.entries(formData).forEach(([key, value]) => {
     if (!(value instanceof File) && !Array.isArray(value) && value !== undefined && value !== null) {
       dataToSend.append(key, String(value));
+      console.log(`📝 [DEBUG] Agregando campo: ${key} = ${value}`);
     }
   });
+
+  console.log('📦 [DEBUG] FormData construido, enviando al servicio...');
 
   try {
     if (!businessId.value) throw new Error("ID del negocio no disponible. Por favor, recarga la página.");
 
     // Enviar formulario al servicio
+    console.log('🌐 [DEBUG] Llamando a consultancyService.submitConsultancyForm...');
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
-
+    
+    console.log('✅ [DEBUG] Formulario enviado exitosamente');
     emit('completed'); // Notificamos al padre que el proceso terminó con éxito.
   } catch (error: any) {
+    console.error('❌ [DEBUG] Error al enviar formulario:', error);
+    console.error('❌ [DEBUG] Error response:', error.response);
     submissionError.value = error.response?.data?.message || "Ocurrió un error inesperado al enviar tus datos. Por favor, inténtalo de nuevo.";
   } finally {
+    console.log('🏁 [DEBUG] finalSubmit terminado, isLoading = false');
     isLoading.value = false;
   }
 });
+
+// --- FUNCIÓN AUXILIAR PARA SUBMIT ---
+const handleFormSubmit = (event: Event) => {
+  console.log('📝 [DEBUG] Evento submit del formulario ejecutado');
+  console.log('📝 [DEBUG] Event:', event);
+  console.log('📝 [DEBUG] Llamando a finalSubmit...');
+  finalSubmit(event);
+};
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
 const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
@@ -110,7 +130,7 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
       </header>
 
       <main class="wizard-content">
-        <form @submit.prevent="finalSubmit" class="wizard-form">
+        <form @submit.prevent="handleFormSubmit" class="wizard-form">
           <div class="steps-container">
             <Transition name="step-transition" mode="out-in">
               <component
@@ -158,6 +178,7 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
               type="submit"
               v-if="currentStep === totalSteps"
               :disabled="isLoading"
+              @click="() => console.log('🔘 [DEBUG] Botón Finalizar y Enviar presionado')"
               class="nav-button submit-button"
             >
               <span v-if="isLoading" class="spinner"></span>
