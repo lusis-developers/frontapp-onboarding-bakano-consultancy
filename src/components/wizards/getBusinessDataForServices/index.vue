@@ -7,6 +7,7 @@ import { useConsultancyForm } from '@/composables/useConsultancyForm';
 // --- COMPONENTES ---
 import Step1 from './step1.vue';
 import Step2 from './step2.vue';
+import Step3 from './step3.vue';
 import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
 import OnboardingNextStep from '@/components/onBoardingNextStep.vue';
 
@@ -22,7 +23,7 @@ const emit = defineEmits(['update:open']);
 
 // --- ESTADO DEL WIZARD (con ajustes) ---
 const currentStep = ref(1);
-const totalSteps = ref(2); // Ahora manejamos 2 pasos
+const totalSteps = ref(3); // Ahora manejamos 3 pasos
 const isLoading = ref(false);
 const isFormSubmitted = ref(props.isPreSubmitted);
 const submissionError = ref<string>('');
@@ -52,7 +53,8 @@ const prevStep = () => { if (currentStep.value > 1) currentStep.value--; };
 // Campos a validar por paso
 const stepFields = {
   1: ['instagram', 'empleados'], // Instagram es requerido, empleados también, TikTok es opcional
-  2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'] // Campos requeridos del step2
+  2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'], // Campos requeridos del step2
+  3: ['objetivoIdeal', 'serviceDescription'] // Campos requeridos del step3
 };
 const nextStep = async () => {
   submissionError.value = '';
@@ -103,7 +105,7 @@ const finalSubmit = handleSubmit(async (formData) => {
   }
 });
 
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
