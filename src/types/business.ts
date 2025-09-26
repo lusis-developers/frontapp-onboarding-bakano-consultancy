@@ -26,6 +26,7 @@ export interface Business {
   ruc?: string
   address?: string
   businessType: string
+  valueProposition?: string
   phone?: string
   email?: string
   managers: IManager[]
@@ -65,4 +66,8 @@ export interface Business {
   brandUsageExamplesPath?: string
   // Checklist Reference
   checklistId?: string
+  // Consultancy-specific fields
+  serviceType?: string
+  monthlyTransactionsPath?: string
+  serviceDescription?: string
 }
