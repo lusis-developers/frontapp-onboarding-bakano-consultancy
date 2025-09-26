@@ -32,6 +32,11 @@ const serviceDescription = computed({
   set: (val) => emit('update:form-value', 'serviceDescription', val),
 });
 
+const serviceType = computed({
+  get: () => props.values.serviceType,
+  set: (val) => emit('update:form-value', 'serviceType', val),
+});
+
 const MAX_SIZE_MB = 70;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
@@ -65,6 +70,23 @@ const formatBytes = (bytes: number, decimals = 2) => {
 
 <template>
   <div class="form-step">
+    <div class="form-field">
+      <div class="form-label-wrapper">
+        <label for="serviceType" class="form-label">Tipo de Servicio*</label>
+        <TooltipIcon text="Especifica el tipo de servicio que ofreces (ej: Consultoría, Diseño, Marketing, etc.)" />
+      </div>
+      <input 
+        v-model="serviceType" 
+        id="serviceType" 
+        type="text"
+        placeholder="Ej: Consultoría en Marketing Digital" 
+        class="form-input" 
+        :class="{ 'input-error': !!props.errors.serviceType }" 
+        maxlength="100"
+      />
+      <span v-if="props.errors.serviceType" class="error-text">{{ props.errors.serviceType }}</span>
+    </div>
+
     <div class="form-field">
       <div class="form-label-wrapper">
         <label for="objetivoIdeal" class="form-label">Objetivo ideal a lograr*</label>
@@ -182,6 +204,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
   margin-top: 1rem;
 }
 
+.form-input,
 .form-textarea {
   font-family: $font-secondary;
   padding: 0.75rem 1rem;
@@ -191,23 +214,30 @@ const formatBytes = (bytes: number, decimals = 2) => {
   color: $BAKANO-DARK;
   background-color: $white;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.form-textarea {
   min-height: 80px;
 }
 
+.form-input::placeholder,
 .form-textarea::placeholder {
   color: $text-placeholder;
 }
 
+.form-input:focus,
 .form-textarea:focus {
   outline: none;
   border-color: $BAKANO-PURPLE;
   box-shadow: 0 0 0 2px rgba($BAKANO-PURPLE, 0.2);
 }
 
+.form-input.input-error,
 .form-textarea.input-error {
   border-color: $BAKANO-PINK;
 }
 
+.form-input.input-error:focus,
 .form-textarea.input-error:focus {
   box-shadow: 0 0 0 2px rgba($BAKANO-PINK, 0.2);
 }
