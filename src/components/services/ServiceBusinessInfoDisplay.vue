@@ -80,7 +80,7 @@ const managersInfo = props.business.managers || [];
         <!-- Datos Básicos del Negocio -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">🏢</span>
+            <i class="fas fa-building title-icon"></i>
             Datos del Negocio
           </h3>
           <div class="service-card-content">
@@ -110,7 +110,7 @@ const managersInfo = props.business.managers || [];
         <!-- Información del Servicio -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">⚡</span>
+            <i class="fas fa-cogs title-icon"></i>
             Información del Servicio
           </h3>
           <div class="service-card-content">
@@ -132,7 +132,7 @@ const managersInfo = props.business.managers || [];
         <!-- Información Financiera -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">💰</span>
+            <i class="fas fa-dollar-sign title-icon"></i>
             Información Financiera
           </h3>
           <div class="service-card-content">
@@ -158,7 +158,7 @@ const managersInfo = props.business.managers || [];
         <!-- Presencia Digital -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">📱</span>
+            <i class="fas fa-mobile-alt title-icon"></i>
             Presencia Digital
           </h3>
           <div class="service-card-content">
@@ -184,7 +184,7 @@ const managersInfo = props.business.managers || [];
         <!-- Identidad de Marca -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">🎨</span>
+            <i class="fas fa-palette title-icon"></i>
             Identidad de Marca
           </h3>
           <div class="service-card-content">
@@ -214,7 +214,7 @@ const managersInfo = props.business.managers || [];
         <!-- Equipo de Gestión -->
         <div v-if="managersInfo.length > 0" class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">👥</span>
+            <i class="fas fa-users title-icon"></i>
             Equipo de Gestión
           </h3>
           <div class="service-card-content">
@@ -231,13 +231,13 @@ const managersInfo = props.business.managers || [];
         <!-- Documentos y Archivos -->
         <div class="service-info-card">
           <h3 class="service-card-title">
-            <span class="title-icon">📄</span>
+            <i class="fas fa-file-alt title-icon"></i>
             Documentos Recibidos
           </h3>
           <div class="service-card-content">
             <ul class="service-document-list">
               <li v-for="doc in serviceDocuments" :key="doc.label" class="service-document-item" :class="{ 'loaded': doc.loaded }">
-                <span class="service-document-icon">{{ doc.loaded ? '✅' : '⏳' }}</span>
+                <i class="service-document-icon" :class="doc.loaded ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
                 <span class="service-document-label">{{ doc.label }}</span>
                 <span class="service-document-status">{{ doc.loaded ? 'Recibido' : 'Pendiente' }}</span>
               </li>
