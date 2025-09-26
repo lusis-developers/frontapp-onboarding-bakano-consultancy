@@ -29,7 +29,7 @@ const baseSchema = z.object({
   desafioPrincipal: z.string().min(1, 'Desafío principal es requerido'),
   objetivoIdeal: z.string().min(1, 'Objetivo ideal es requerido'),
   // Nuevos campos para servicios generales
-  serviceType: z.string().optional(),
+  serviceType: z.string().min(1, 'Tipo de servicio es requerido').max(100, 'El tipo de servicio no puede exceder 100 caracteres'),
   monthlyTransactionsPath: z.instanceof(File).optional(),
   serviceDescription: z.string().optional(),
   // Archivos específicos de restaurantes (ahora opcionales para otros tipos de negocio)
