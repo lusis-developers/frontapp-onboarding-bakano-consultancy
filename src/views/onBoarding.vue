@@ -5,6 +5,7 @@ import { useBusinessOnboarding } from '@/composables/useBusinessOnboarding';
 import { useChecklistStore } from '@/stores/checklist';
 import { CALENDLY_LINK } from '@/constants/links.contant';
 import OnboardingFormWizard from '@/components/wizards/OnboardingFormWizard.vue';
+import OnboardingFormForServicesWizard from '@/components/wizards/OnboardingFormForServicesWizard.vue';
 import MeetingScheduler from '@/components/gastronomic/MeetingScheduler.vue';
 import HeroSection from '@/components/gastronomic/heroSection.vue';
 import VideoSection from '@/components/gastronomic/videoSection.vue';
@@ -202,7 +203,14 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="wizard-view">
-          <OnboardingFormWizard @completed="handleFormCompletion" />
+          <OnboardingFormForServicesWizard 
+            v-if="businessData.businessType === 'Tutoring Center'"
+            @completed="handleFormCompletion" 
+          />
+          <OnboardingFormWizard 
+            v-else
+            @completed="handleFormCompletion" 
+          />
         </div>
       </main>
 
