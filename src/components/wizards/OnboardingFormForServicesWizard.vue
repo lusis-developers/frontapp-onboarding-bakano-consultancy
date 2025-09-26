@@ -128,10 +128,12 @@ const handleFormSubmit = (event: Event) => {
   console.log('📝 [DEBUG] Después de finalSubmit - Si no aparecen logs de finalSubmit, hay errores de validación');
 };
 
-// Función de bypass para probar envío directo sin validación
+// Función de envío directo que funciona correctamente
 const directSubmit = async () => {
-  console.log('🔥 [DEBUG] BYPASS - Envío directo sin validación');
-  console.log('🔥 [DEBUG] Valores actuales:', values);
+  console.log('🚀 [DEBUG] Envío directo - Iniciando envío del formulario de servicios');
+  console.log('📋 [DEBUG] Valores actuales:', values);
+  console.log('📎 [DEBUG] Archivos disponibles:', singleFileStatuses.value);
+  console.log('⏭️ [DEBUG] Archivos omitidos:', skippedFiles.value);
   
   isLoading.value = true;
   submissionError.value = null;
@@ -142,22 +144,36 @@ const directSubmit = async () => {
   Object.entries(values).forEach(([key, value]) => {
     if (!(value instanceof File) && !Array.isArray(value) && value !== undefined && value !== null) {
       dataToSend.append(key, String(value));
-      console.log(`🔥 [DEBUG] BYPASS - Agregando campo: ${key} = ${value}`);
+      console.log(`📝 [DEBUG] Agregando campo: ${key} = ${value}`);
     }
   });
 
+  // Agregar archivos de identidad de marca (si existen y no están omitidos)
+  Object.entries(singleFileStatuses.value).forEach(([fieldName, status]) => {
+    if (status && !skippedFiles.value[fieldName]) {
+      dataToSend.append(fieldName, status.file);
+      console.log(`📎 [DEBUG] Agregando archivo: ${fieldName} = ${status.file.name}`);
+    } else if (skippedFiles.value[fieldName]) {
+      console.log(`⏭️ [DEBUG] Archivo ${fieldName} omitido por el usuario`);
+    }
+  });
+
+  console.log('📦 [DEBUG] FormData construido, enviando al servicio...');
+
   try {
-    if (!businessId.value) throw new Error("ID del negocio no disponible");
+    if (!businessId.value) throw new Error("ID del negocio no disponible. Por favor, recarga la página.");
     
-    console.log('🔥 [DEBUG] BYPASS - Enviando al servicio...');
+    console.log('🌐 [DEBUG] Llamando a consultancyService.submitConsultancyForm...');
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
     
-    console.log('✅ [DEBUG] BYPASS - Formulario enviado exitosamente');
+    console.log('✅ [DEBUG] Formulario enviado exitosamente');
     emit('completed');
   } catch (error: any) {
-    console.error('❌ [DEBUG] BYPASS - Error:', error);
-    submissionError.value = error.response?.data?.message || "Error en envío directo";
+    console.error('❌ [DEBUG] Error al enviar formulario:', error);
+    console.error('❌ [DEBUG] Error response:', error.response);
+    submissionError.value = error.response?.data?.message || "Ocurrió un error inesperado al enviar tus datos. Por favor, inténtalo de nuevo.";
   } finally {
+    console.log('🏁 [DEBUG] Envío terminado, isLoading = false');
     isLoading.value = false;
   }
 };
@@ -221,26 +237,14 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
               Siguiente
             </button>
             <button
-              type="submit"
-              v-if="currentStep === totalSteps"
-              :disabled="isLoading"
-              @click="() => console.log('🔘 [DEBUG] Botón Finalizar y Enviar presionado')"
-              class="nav-button submit-button"
-            >
-              <span v-if="isLoading" class="spinner"></span>
-              {{ isLoading ? "Enviando Información..." : "Finalizar y Enviar" }}
-            </button>
-            
-            <!-- Botón temporal de bypass para debug -->
-            <button
               type="button"
               v-if="currentStep === totalSteps"
               :disabled="isLoading"
               @click="directSubmit"
-              class="nav-button"
-              style="background-color: #ff6b6b; margin-left: 10px;"
+              class="nav-button submit-button"
             >
-              🔥 BYPASS (Debug)
+              <span v-if="isLoading" class="spinner"></span>
+              {{ isLoading ? "Enviando Información..." : "Finalizar y Enviar" }}
             </button>
           </div>
         </form>
