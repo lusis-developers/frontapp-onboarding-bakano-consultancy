@@ -8,6 +8,8 @@ import { useConsultancyForm } from '@/composables/useConsultancyForm';
 import Step1 from './step1.vue';
 import Step2 from './step2.vue';
 import Step3 from './step3.vue';
+import Step4 from './step4.vue'; // Identidad de marca
+import Step5 from '../getBusinessData/step5.vue'; // Reutilizamos el Step5 existente
 import ConfirmCloseModal from '@/components/modal/confirmCloseModal.vue';
 import OnboardingNextStep from '@/components/onBoardingNextStep.vue';
 
@@ -23,7 +25,7 @@ const emit = defineEmits(['update:open']);
 
 // --- ESTADO DEL WIZARD (con ajustes) ---
 const currentStep = ref(1);
-const totalSteps = ref(3); // Ahora manejamos 3 pasos
+const totalSteps = ref(5); // Ahora manejamos 5 pasos
 const isLoading = ref(false);
 const isFormSubmitted = ref(props.isPreSubmitted);
 const submissionError = ref<string>('');
@@ -54,7 +56,9 @@ const prevStep = () => { if (currentStep.value > 1) currentStep.value--; };
 const stepFields = {
   1: ['instagram', 'empleados'], // Instagram es requerido, empleados también, TikTok es opcional
   2: ['ingresoMensual', 'ingresoAnual', 'vendePorWhatsapp', 'gananciaWhatsapp', 'desafioPrincipal'], // Campos requeridos del step2
-  3: ['objetivoIdeal', 'serviceDescription'] // Campos requeridos del step3
+  3: ['objetivoIdeal', 'serviceDescription'], // Campos requeridos del step3
+  4: [], // Step4 - Identidad de marca (todos los campos son opcionales)
+  5: ['acceptsPolicies'] // Step5 requiere aceptación de políticas
 };
 const nextStep = async () => {
   submissionError.value = '';
@@ -105,7 +109,7 @@ const finalSubmit = handleSubmit(async (formData) => {
   }
 });
 
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3, 4: Step4, 5: Step5 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
