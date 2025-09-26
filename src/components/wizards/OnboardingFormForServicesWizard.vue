@@ -24,8 +24,8 @@ const submissionError = ref<string | null>(null);
 const route = useRoute();
 const businessId = computed(() => route.params.businessId as string);
 const {
-  values, errors, skippedFiles, menuRestauranteFiles, singleFileStatuses,
-  handleFormValueUpdateFromChild, handleAddMenuFiles, handleRemoveMenuFile, updateFile,
+  values, errors, skippedFiles, singleFileStatuses,
+  handleFormValueUpdateFromChild, updateFile,
   handleSubmit, validateField
 } = useConsultancyForm();
 
@@ -68,23 +68,35 @@ const nextStep = async () => {
 
 // --- ENVÍO FINAL DEL FORMULARIO ---
 const finalSubmit = handleSubmit(async (formData) => {
-  console.log('🚀 [DEBUG] finalSubmit ejecutado - Iniciando envío del formulario');
+  console.log('🚀 [DEBUG] finalSubmit ejecutado - Iniciando envío del formulario de servicios');
   console.log('📋 [DEBUG] formData recibida:', formData);
   console.log('🏢 [DEBUG] businessId:', businessId.value);
-  
+
   isLoading.value = true;
   submissionError.value = null;
 
-  // Construimos el FormData para el envío de archivos y datos.
+  // Construimos el FormData para el envío de datos de servicios
   const dataToSend = new FormData();
+
+  // Agregar todos los campos del formulario de servicios
   Object.entries(formData).forEach(([key, value]) => {
     if (!(value instanceof File) && !Array.isArray(value) && value !== undefined && value !== null) {
       dataToSend.append(key, String(value));
-      console.log(`📝 [DEBUG] Agregando campo: ${key} = ${value}`);
+      console.log(`📝 [DEBUG] Agregando campo de servicio: ${key} = ${value}`);
     }
   });
 
-  console.log('📦 [DEBUG] FormData construido, enviando al servicio...');
+  // Agregar archivos de identidad de marca (si existen y no están omitidos)
+  Object.entries(singleFileStatuses.value).forEach(([fieldName, status]) => {
+    if (status && !skippedFiles.value[fieldName]) {
+      dataToSend.append(fieldName, status.file);
+      console.log(`📎 [DEBUG] Agregando archivo de marca: ${fieldName} = ${status.file.name}`);
+    } else if (skippedFiles.value[fieldName]) {
+      console.log(`⏭️ [DEBUG] Archivo de marca ${fieldName} omitido por el usuario`);
+    }
+  });
+
+  console.log('📦 [DEBUG] FormData de servicios construido, enviando al servicio...');
 
   try {
     if (!businessId.value) throw new Error("ID del negocio no disponible. Por favor, recarga la página.");
@@ -92,15 +104,15 @@ const finalSubmit = handleSubmit(async (formData) => {
     // Enviar formulario al servicio
     console.log('🌐 [DEBUG] Llamando a consultancyService.submitConsultancyForm...');
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
-    
-    console.log('✅ [DEBUG] Formulario enviado exitosamente');
+
+    console.log('✅ [DEBUG] Formulario de servicios enviado exitosamente');
     emit('completed'); // Notificamos al padre que el proceso terminó con éxito.
   } catch (error: any) {
-    console.error('❌ [DEBUG] Error al enviar formulario:', error);
+    console.error('❌ [DEBUG] Error al enviar formulario de servicios:', error);
     console.error('❌ [DEBUG] Error response:', error.response);
     submissionError.value = error.response?.data?.message || "Ocurrió un error inesperado al enviar tus datos. Por favor, inténtalo de nuevo.";
   } finally {
-    console.log('🏁 [DEBUG] finalSubmit terminado, isLoading = false');
+    console.log('🏁 [DEBUG] finalSubmit de servicios terminado, isLoading = false');
     isLoading.value = false;
   }
 });
@@ -109,8 +121,45 @@ const finalSubmit = handleSubmit(async (formData) => {
 const handleFormSubmit = (event: Event) => {
   console.log('📝 [DEBUG] Evento submit del formulario ejecutado');
   console.log('📝 [DEBUG] Event:', event);
+  console.log('📝 [DEBUG] Valores del formulario:', values);
+  console.log('📝 [DEBUG] Errores del formulario:', errors);
   console.log('📝 [DEBUG] Llamando a finalSubmit...');
   finalSubmit(event);
+  console.log('📝 [DEBUG] Después de finalSubmit - Si no aparecen logs de finalSubmit, hay errores de validación');
+};
+
+// Función de bypass para probar envío directo sin validación
+const directSubmit = async () => {
+  console.log('🔥 [DEBUG] BYPASS - Envío directo sin validación');
+  console.log('🔥 [DEBUG] Valores actuales:', values);
+  
+  isLoading.value = true;
+  submissionError.value = null;
+
+  const dataToSend = new FormData();
+  
+  // Agregar todos los campos del formulario de servicios
+  Object.entries(values).forEach(([key, value]) => {
+    if (!(value instanceof File) && !Array.isArray(value) && value !== undefined && value !== null) {
+      dataToSend.append(key, String(value));
+      console.log(`🔥 [DEBUG] BYPASS - Agregando campo: ${key} = ${value}`);
+    }
+  });
+
+  try {
+    if (!businessId.value) throw new Error("ID del negocio no disponible");
+    
+    console.log('🔥 [DEBUG] BYPASS - Enviando al servicio...');
+    await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
+    
+    console.log('✅ [DEBUG] BYPASS - Formulario enviado exitosamente');
+    emit('completed');
+  } catch (error: any) {
+    console.error('❌ [DEBUG] BYPASS - Error:', error);
+    submissionError.value = error.response?.data?.message || "Error en envío directo";
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
@@ -140,13 +189,10 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
                 :values="values"
                 :errors="errors"
                 :skipped-files="skippedFiles"
-                :menu-files="menuRestauranteFiles"
                 :single-file-statuses="singleFileStatuses"
                 :business-id="businessId"
                 @update:form-value="handleFormValueUpdateFromChild"
                 @update-file="updateFile"
-                @add-menu-files="handleAddMenuFiles"
-                @remove-menu-file="handleRemoveMenuFile"
               />
             </Transition>
           </div>
@@ -183,6 +229,18 @@ const activeStepComponent = computed(() => stepComponentMap[currentStep.value] |
             >
               <span v-if="isLoading" class="spinner"></span>
               {{ isLoading ? "Enviando Información..." : "Finalizar y Enviar" }}
+            </button>
+            
+            <!-- Botón temporal de bypass para debug -->
+            <button
+              type="button"
+              v-if="currentStep === totalSteps"
+              :disabled="isLoading"
+              @click="directSubmit"
+              class="nav-button"
+              style="background-color: #ff6b6b; margin-left: 10px;"
+            >
+              🔥 BYPASS (Debug)
             </button>
           </div>
         </form>
