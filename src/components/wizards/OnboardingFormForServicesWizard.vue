@@ -7,13 +7,14 @@ import { useConsultancyForm } from '@/composables/useConsultancyForm';
 // --- COMPONENTES DEL WIZARD ---
 import Step1 from './getBusinessDataForServices/step1.vue';
 import Step2 from './getBusinessDataForServices/step2.vue';
+import Step3 from './getBusinessDataForServices/step3.vue';
 
 // --- EMITS ---
 const emit = defineEmits(['completed']);
 
 // --- ESTADO DEL WIZARD ---
 const currentStep = ref(1);
-const totalSteps = ref(2);
+const totalSteps = ref(3);
 const isLoading = ref(false);
 const submissionError = ref<string | null>(null);
 
@@ -36,7 +37,8 @@ const prevStep = () => {
 // Mapeo de campos a validar por cada paso.
 const stepFields: Record<number, (keyof typeof values)[]> = {
   1: ['instagram', 'empleados'],
-  2: ['ingresoMensual', 'ingresoAnual', 'desafioPrincipal', 'vendePorWhatsapp', 'gananciaWhatsapp']
+  2: ['ingresoMensual', 'ingresoAnual', 'desafioPrincipal', 'vendePorWhatsapp', 'gananciaWhatsapp'],
+  3: ['objetivoIdeal', 'serviceDescription']
 };
 
 const nextStep = async () => {
@@ -88,7 +90,7 @@ const finalSubmit = handleSubmit(async (formData) => {
 });
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
-const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2, 3: Step3 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
