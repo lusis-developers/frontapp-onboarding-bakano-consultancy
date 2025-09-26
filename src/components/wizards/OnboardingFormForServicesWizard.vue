@@ -6,13 +6,14 @@ import { useConsultancyForm } from '@/composables/useConsultancyForm';
 
 // --- COMPONENTES DEL WIZARD ---
 import Step1 from './getBusinessDataForServices/step1.vue';
+import Step2 from './getBusinessDataForServices/step2.vue';
 
 // --- EMITS ---
 const emit = defineEmits(['completed']);
 
 // --- ESTADO DEL WIZARD ---
 const currentStep = ref(1);
-const totalSteps = ref(1);
+const totalSteps = ref(2);
 const isLoading = ref(false);
 const submissionError = ref<string | null>(null);
 
@@ -34,7 +35,8 @@ const prevStep = () => {
 
 // Mapeo de campos a validar por cada paso.
 const stepFields: Record<number, (keyof typeof values)[]> = {
-  1: ['instagram', 'empleados']
+  1: ['instagram', 'empleados'],
+  2: ['ingresoMensual', 'ingresoAnual', 'desafioPrincipal', 'vendePorWhatsapp', 'gananciaWhatsapp']
 };
 
 const nextStep = async () => {
@@ -73,10 +75,10 @@ const finalSubmit = handleSubmit(async (formData) => {
 
   try {
     if (!businessId.value) throw new Error("ID del negocio no disponible. Por favor, recarga la página.");
-    
+
     // Enviar formulario al servicio
     await consultancyService.submitConsultancyForm(businessId.value, dataToSend);
-    
+
     emit('completed'); // Notificamos al padre que el proceso terminó con éxito.
   } catch (error: any) {
     submissionError.value = error.response?.data?.message || "Ocurrió un error inesperado al enviar tus datos. Por favor, inténtalo de nuevo.";
@@ -86,7 +88,7 @@ const finalSubmit = handleSubmit(async (formData) => {
 });
 
 // --- RENDERIZADO DINÁMICO DE PASOS ---
-const stepComponentMap: Record<number, any> = { 1: Step1 };
+const stepComponentMap: Record<number, any> = { 1: Step1, 2: Step2 };
 const activeStepComponent = computed(() => stepComponentMap[currentStep.value] || null);
 </script>
 
