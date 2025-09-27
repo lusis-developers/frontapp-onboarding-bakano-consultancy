@@ -1,0 +1,16 @@
+@use "sass:color";
+
+// Funciones globales para reemplazar darken(), lighten() y mix() deprecadas
+// Estas funciones mantienen la misma sintaxis pero usan las nuevas APIs de Sass
+
+@function darken($color, $amount) {
+  @return color.adjust($color, $lightness: -$amount);
+}
+
+@function lighten($color, $amount) {
+  @return color.adjust($color, $lightness: $amount);
+}
+
+@function mix($color1, $color2, $weight: 50%) {
+  @return color.mix($color1, $color2, $weight);
+}

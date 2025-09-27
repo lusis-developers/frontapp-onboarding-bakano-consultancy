@@ -5,10 +5,12 @@ import { useBusinessOnboarding } from '@/composables/useBusinessOnboarding';
 import { useChecklistStore } from '@/stores/checklist';
 import { CALENDLY_LINK } from '@/constants/links.contant';
 import OnboardingFormWizard from '@/components/wizards/OnboardingFormWizard.vue';
+import OnboardingFormForServicesWizard from '@/components/wizards/OnboardingFormForServicesWizard.vue';
 import MeetingScheduler from '@/components/gastronomic/MeetingScheduler.vue';
 import HeroSection from '@/components/gastronomic/heroSection.vue';
 import VideoSection from '@/components/gastronomic/videoSection.vue';
 import BusinessInfoDisplay from '@/components/gastronomic/BusinessInfoDisplay.vue';
+import ServiceBusinessInfoDisplay from '@/components/services/ServiceBusinessInfoDisplay.vue';
 import OnboardingActionBar from '@/components/shared/OnboardingActionBar.vue';
 import PageFeedback from '@/components/shared/PageFeedback.vue';
 import NotFound from '@/views/notFound.vue';
@@ -121,7 +123,14 @@ onUnmounted(() => {
             </template>
           </HeroSection>
 
-          <BusinessInfoDisplay :business="businessData" />
+          <ServiceBusinessInfoDisplay 
+            v-if="businessData.businessType === 'Tutoring Center'"
+            :business="businessData" 
+          />
+          <BusinessInfoDisplay 
+            v-else
+            :business="businessData" 
+          />
 
           <VideoSection
             title="Nuestra Estrategia, Siempre a tu Alcance"
@@ -202,7 +211,14 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="wizard-view">
-          <OnboardingFormWizard @completed="handleFormCompletion" />
+          <OnboardingFormForServicesWizard 
+            v-if="businessData.businessType === 'Tutoring Center'"
+            @completed="handleFormCompletion" 
+          />
+          <OnboardingFormWizard 
+            v-else
+            @completed="handleFormCompletion" 
+          />
         </div>
       </main>
 

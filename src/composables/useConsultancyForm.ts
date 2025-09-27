@@ -28,6 +28,11 @@ const baseSchema = z.object({
   gananciaWhatsapp: z.preprocess((v) => String(v), z.string().optional()),
   desafioPrincipal: z.string().min(1, 'Desafío principal es requerido'),
   objetivoIdeal: z.string().min(1, 'Objetivo ideal es requerido'),
+  // Nuevos campos para servicios generales
+  serviceType: z.string().min(1, 'Tipo de servicio es requerido').max(100, 'El tipo de servicio no puede exceder 100 caracteres'),
+  monthlyTransactionsPath: z.instanceof(File).optional(),
+  serviceDescription: z.string().optional(),
+  // Archivos específicos de restaurantes (ahora opcionales para otros tipos de negocio)
   menuRestaurante: multiFileSchema.optional(),
   costoPorPlato: z.instanceof(File).optional(),
   ventasMovimientos: z.instanceof(File).optional(),
@@ -108,6 +113,10 @@ export function useConsultancyForm() {
       gananciaWhatsapp: '',
       desafioPrincipal: '',
       objetivoIdeal: '',
+      // Nuevos campos para servicios generales
+      serviceType: '',
+      monthlyTransactionsPath: undefined,
+      serviceDescription: '',
       acceptsPolicies: false,
       menuRestaurante: [],
       brandPrimaryColor: '',
