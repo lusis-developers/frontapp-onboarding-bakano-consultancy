@@ -133,6 +133,7 @@ onUnmounted(() => {
           />
 
           <VideoSection
+            v-if="businessData.businessType !== 'Tutoring Center'"
             title="Nuestra Estrategia, Siempre a tu Alcance"
             description="Sabemos que son muchos detalles. Si en algún momento olvidas los pasos que seguiremos para transformar tu negocio, este video es tu recordatorio."
             media-id="lpxrybfuh8"
