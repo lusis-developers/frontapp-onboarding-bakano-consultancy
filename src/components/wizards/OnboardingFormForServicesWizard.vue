@@ -40,7 +40,7 @@ const prevStep = () => {
 const stepFields: Record<number, (keyof typeof values)[]> = {
   1: ['instagram', 'empleados'],
   2: ['ingresoMensual', 'ingresoAnual', 'desafioPrincipal', 'vendePorWhatsapp', 'gananciaWhatsapp'],
-  3: ['objetivoIdeal', 'serviceDescription'],
+  3: ['serviceType', 'objetivoIdeal', 'serviceDescription'],
   4: [], // Step4 - Identidad de marca (todos los campos son opcionales)
   5: ['acceptsPolicies'] // Step5 requiere aceptación de políticas
 };
